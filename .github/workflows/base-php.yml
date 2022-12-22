@@ -26,3 +26,4 @@ jobs:
           VERSION_LIST: 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
+        run: bash php/scripts/build.sh

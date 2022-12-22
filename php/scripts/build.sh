@@ -19,7 +19,7 @@ readonly BASE_DIR="$(
 pushd "${BASE_DIR}" >/dev/null
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
-PUSH_FLAG=
+PUSH_FLAG=${PUSH_FLAG:-0}
 if [[ "${1:-}" = "--push" ]]; then
   PUSH_FLAG=1
 fi
