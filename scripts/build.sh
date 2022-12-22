@@ -14,9 +14,17 @@ readonly BASE_DIR="$(
 )/.."
 pushd ${BASE_DIR} >/dev/null
 
-## import warden util functions
-readonly WARDEN_DIR="${BASE_DIR}/.."
-source "${WARDEN_DIR}/utils/core.sh"
+function fatal {
+  error "$@"
+  exit -1
+}
+function warning {
+  >&2 printf "\033[33mWARNING\033[0m: $@\n"
+}
+function version {
+  echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
+}
+
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
 PUSH_FLAG=${PUSH_FLAG:-0}
