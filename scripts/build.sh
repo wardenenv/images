@@ -14,6 +14,9 @@ readonly BASE_DIR="$(
 )/.."
 pushd ${BASE_DIR} >/dev/null
 
+function error {
+  >&2 printf "\033[31mERROR\033[0m: $@\n"
+}
 function fatal {
   error "$@"
   exit -1
