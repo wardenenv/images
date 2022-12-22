@@ -6,18 +6,6 @@ function error {
   >&2 printf "\033[31mERROR\033[0m: %s\n" "$@"
 }
 
-## find directory above where this script is located following symlinks if neccessary
-readonly BASE_DIR="$(
-  cd "$(
-    dirname "$(
-      (readlink "${BASH_SOURCE[0]}" || echo "${BASH_SOURCE[0]}") \
-        | sed -e "s#^../#$(dirname "$(dirname "${BASH_SOURCE[0]}")")/#"
-    )"
-  )/.." >/dev/null \
-  && pwd
-)"
-pushd "${BASE_DIR}" >/dev/null
-
 ## if --push is passed as first argument to script, this will login to docker hub and push images
 PUSH_FLAG=${PUSH_FLAG:-0}
 if [[ "${1:-}" = "--push" ]]; then
