@@ -19,7 +19,7 @@ readonly WARDEN_DIR="${BASE_DIR}/.."
 source "${WARDEN_DIR}/utils/core.sh"
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
-PUSH_FLAG=
+PUSH_FLAG=${PUSH_FLAG:-0}
 if [[ "${1:-}" = "--push" ]]; then
   PUSH_FLAG=1
   SEARCH_PATH="${2:-}"
@@ -33,7 +33,7 @@ if [[ -z ${SEARCH_PATH} ]]; then
 fi
 
 ## login to docker hub as needed
-if [[ ${PUSH_FLAG} ]]; then
+if [[ ${PUSH_FLAG} && ${PRE_AUTH:-0} != 1 ]]; then
   if [[ ${DOCKER_USERNAME:-} ]]; then
     echo "Attempting non-interactive docker login (via provided credentials)"
     echo "${DOCKER_PASSWORD:-}" | docker login -u "${DOCKER_USERNAME:-}" --password-stdin ${DOCKER_REGISTRY:-docker.io}
