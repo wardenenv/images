@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - php-fpm/**
+      - scripts/build.sh
       - .github/workflows/warden-php.yml
 jobs:
   php-fpm:
