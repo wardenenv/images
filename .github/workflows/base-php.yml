@@ -22,7 +22,7 @@ jobs:
       - name: Build & Push Images
         env:
           PRE_AUTH: 1
-          IMAGE_NAME: ghcr.io/wardenenv/php
+          IMAGE_NAME: ghcr.io/wardenenv/centos-php
           VERSION_LIST: 7.4 8.0 8.1 8.2
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
