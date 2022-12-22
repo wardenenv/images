@@ -25,7 +25,7 @@ if [[ "${1:-}" = "--push" ]]; then
 fi
 
 ## login to docker hub as needed
-if [[ $PUSH_FLAG ]]; then
+if [[ $PUSH_FLAG && ${PRE_AUTH:-0} != 1 ]]; then
   if [ -t 1 ]; then
     docker login
   else
