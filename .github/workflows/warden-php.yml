@@ -47,6 +47,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+        run: bash scripts/build.sh "${BUILD_GROUP}"
 
   magento1:
     name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)
@@ -86,6 +87,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+        run: bash scripts/build.sh "${BUILD_GROUP}"
 
   magento2:
     name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento2)
@@ -125,3 +127,4 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+        run: bash scripts/build.sh "${BUILD_GROUP}"
