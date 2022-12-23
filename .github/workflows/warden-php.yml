@@ -1,5 +1,7 @@
 name: Warden PHP Images
 on:
+  schedule:
+    - cron: "0 0 * * *"
   push:
     branches:
       - main
@@ -23,7 +25,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
+      - name: Build & Push Images (GitHub)
         env:
           BUILD_GROUP: php-fpm
           PRE_AUTH: 1
@@ -33,6 +35,18 @@ jobs:
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build & Push Images (Docker Hub)
+        env:
+          BUILD_GROUP: php-fpm
+          PRE_AUTH: 1
+          PHP_SOURCE_IMAGE: ghcr.io/wardenenv/centos-php
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ matrix.php_version }}
+          PHP_VARIANT: ${{ matrix.php_variant }}
 
   magento1:
     name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)
@@ -60,6 +74,18 @@ jobs:
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build & Push Images (Docker Hub)
+        env:
+          BUILD_GROUP: php-fpm/magento1
+          PRE_AUTH: 1
+          PHP_SOURCE_IMAGE: ghcr.io/wardenenv/centos-php
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ matrix.php_version }}
+          PHP_VARIANT: ${{ matrix.php_variant }}
 
   magento2:
     name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento2)
@@ -87,3 +113,15 @@ jobs:
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build & Push Images (Docker Hub)
+        env:
+          BUILD_GROUP: php-fpm/magento2
+          PRE_AUTH: 1
+          PHP_SOURCE_IMAGE: ghcr.io/wardenenv/centos-php
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ matrix.php_version }}
+          PHP_VARIANT: ${{ matrix.php_variant }}
