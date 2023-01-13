@@ -1,22 +1,106 @@
 name: Docker Image MySQL
 on:
+  workflow_dispatch:
   schedule:
-  - cron: "0 6 1 * *"   # 6 AM UTC on 1st day of month
+    - cron: "0 6 * * *" # 6 AM Daily
   push:
     paths:
-    - version
-    - images/.trigger
-    - images/mysql/**
-    branches:
-    - develop
+      - mysql/**
+      - .github/workflows/mysql.yml
+
 jobs:
   mysql:
     name: MySQL
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "8.0.28"
+          - "8.0"
+
     steps:
-    - uses: actions/checkout@v1
-    - run: ./images/scripts/build.sh --push "${BUILD_GROUP}"
-      env:
-        BUILD_GROUP: mysql
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ !env.ACT }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ !env.ACT }}
+
+      - name: Set build-args
+        run: |-
+          ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
+          MYSQL_VERSION=$(
+            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls mysql \
+            | egrep "^${ESCAPED_VERSION}(\.[0-9]+)?(\.[0-9]+)?(-oracle)?\$" | sort -Vr | head -n1
+          )
+          echo "MYSQL_VERSION=${MYSQL_VERSION}" | tee /dev/stderr >> $GITHUB_ENV
+
+      - uses: docker/build-push-action@v3
+        with:
+          context: mysql
+          platforms: linux/amd64,linux/arm64
+          build-args: MYSQL_VERSION=${{ env.MYSQL_VERSION }}
+          push: ${{ github.ref == 'refs/heads/main' && !env.ACT }}
+          tags: ghcr.io/${{ github.repository_owner }}/mysql:${{ matrix.version }},wardenenv/mysql:${{matrix.version}}
+  mysql-legacy:
+    name: MySQL Legacy
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "5.5"
+          - "5.6"
+          - "5.7"
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ !env.ACT }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ !env.ACT }}
+
+      - name: Set build-args
+        run: |-
+          ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
+          MYSQL_VERSION=$(
+            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls mysql \
+            | egrep "^${ESCAPED_VERSION}(\.[0-9]+)?(\.[0-9]+)?(-oracle)?\$" | sort -Vr | head -n1
+          )
+          echo "MYSQL_VERSION=${MYSQL_VERSION}" | tee /dev/stderr >> $GITHUB_ENV
+
+      - uses: docker/build-push-action@v3
+        with:
+          context: mysql
+          platforms: linux/amd64
+          build-args: MYSQL_VERSION=${{ env.MYSQL_VERSION }}
+          push: ${{ github.ref == 'refs/heads/main' && !env.ACT }}
+          tags: ghcr.io/${{ github.repository_owner }}/mysql:${{ matrix.version }},wardenenv/mysql:${{matrix.version}}

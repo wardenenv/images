@@ -1,2 +1,2 @@
 ARG RABBITMQ_VERSION
-FROM rabbitmq:${RABBITMQ_VERSION}-management
+FROM rabbitmq:${RABBITMQ_VERSION}-management-alpine

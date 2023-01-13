@@ -62,6 +62,7 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     BUILD_DIR="$(dirname "${file}")"
     IMAGE_TAG="${WARDEN_IMAGE_REPOSITORY}/$(echo "${BUILD_DIR}" | cut -d/ -f1)"
     IMAGE_SUFFIX="$(echo "${BUILD_DIR}" | cut -d/ -f2- -s | tr / - | sed 's/^-//')"
+    echo $IMAGE_SUFFIX
 
     ## due to build matrix requirements, magento1 and magento2 specific varients are built in separate invocation
     if [[ ${SEARCH_PATH} == "php-fpm" ]] && [[ ${file} =~ php-fpm/magento[1-2] ]]; then
