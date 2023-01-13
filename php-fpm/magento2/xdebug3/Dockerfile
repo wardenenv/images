@@ -10,7 +10,7 @@ RUN set -eux \
     && rm -rf /var/cache/dnf
 
 COPY xdebug3/etc/*.ini /etc/
-COPY xdebug3/etc/php.d/*.ini /etc/php.d/
+COPY xdebug3/etc/php.d/* /etc/php.d/
 
 RUN if [[ $(printf "8.0\n${PHP_VERSION}" | sort -h | head -n1) == "8.0" ]]; \
     then mv /etc/php.d/15-xdebug3.2.ini.template /etc/php.d/15-xdebug.ini; \
