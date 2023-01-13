@@ -1,0 +1,30 @@
+name: Docker Image Varnish
+on:
+  schedule:
+  - cron: "0 6 1 * *"   # 6 AM UTC on 1st day of month
+  push:
+    branches:
+      - main
+    paths:
+      - varnish/**
+      - scripts/build.sh
+      - .github/workflows/varnish.yml
+jobs:
+  varnish:
+    name: Varnish
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-buildx-action@v2
+    - uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - run: scripts/build.sh
+      env:
+        BUILD_GROUP: varnish
+        PRE_AUTH: 1
+        WARDEN_IMAGE_REPOSITORY: ghcr.io/wardenenv
+        PUSH_FLAG: 1
