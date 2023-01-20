@@ -1,57 +1,155 @@
-ARG PHP_SOURCE_IMAGE="docker.io/davidalger/php"
+ARG ENV_SOURCE_IMAGE
 ARG PHP_VERSION
-ARG PHP_VARIANT="fpm-loaders"
-FROM ${PHP_SOURCE_IMAGE}:${PHP_VERSION}-${PHP_VARIANT}
+ARG OS_RELEASE
 
-# Clear undesired settings from base fpm images
-ENV COMPOSER_ALLOW_SUPERUSER=
-ENV COMPOSER_HOME=
+FROM golang:alpine AS mhs-builder
+RUN go install github.com/mailhog/mhsendmail@latest
+
+
+FROM ${ENV_SOURCE_IMAGE:-php}:${PHP_VERSION}-fpm-${OS_RELEASE:-bullseye}
+USER root
+ARG PHP_VERSION
 
 ENV MAILHOG_HOST    mailhog
 ENV MAILHOG_PORT    1025
+ENV USER_ID         501
+ENV GROUP_ID        20
+ENV OSTYPE          darwin220
 
-RUN dnf install -y which pv sudo bind-utils python3-pip bash-completion rsync socat oathtool \
-        wget ack make gcc gcc-c++ automake autoconf crontabs mariadb nano vim coreutils-common \
-    && dnf clean all \
-    && rm -rf /var/cache/dnf
+# PHP Extension Installer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-RUN dnf install -y python2 \
-    && ln -s /bin/python2 /bin/python \
-    && dnf clean all \
-    && rm -rf /var/cache/dnf
+# Copy mhsendmail to PHP
+COPY --from=mhs-builder /go/bin/mhsendmail /usr/local/bin/mhsendmail
 
-ENV NODE_VERSION    10
-RUN npm install -g n \
-    && n install ${NODE_VERSION} \
-    && rm -rf /usr/local/n/versions/node
+# Install PHP Extensions required by Magento OS, Adobe Commerce, and the UCT (pcntl)
+RUN chmod +x /usr/local/bin/install-php-extensions && install-php-extensions \
+    apcu \
+    amqp \
+    bcmath \
+    calendar \
+    exif \
+    gd \
+    intl \
+    imagick \
+    imap \
+    mcrypt \
+    mysqli \
+    pcntl \
+    pdo_mysql \
+    redis \
+    soap \
+    sockets \
+    sodium \
+    xsl \
+    zip
+
+# Install helpful utilities
+RUN set -eux; \
+    apt-get update -y; \
+    apt-get install -y --no-install-recommends \
+    jq \
+    bash \
+    patch \
+    pv \
+    procps \
+    nano \
+    vim \
+    mariadb-client \
+    sudo \
+    gettext \
+    ca-certificates \
+    git \
+    rsync \
+    bash-completion \
+    nmap  \
+    less \
+    zsh \
+    fish \
+    pwgen \
+    openssh-client \
+    unzip \
+    rsync \
+    socat \
+    oathtool \
+    wget \
+    ack  \
+    automake  \
+    autoconf \
+    python \
+    cron \
+    htop \
+    chromium \
+    imagemagick \
+    graphicsmagick
 
 COPY docker-entrypoint /usr/local/bin/
 COPY etc/profile.d/*.sh /etc/profile.d/
-COPY etc/*.ini /etc/
-COPY etc/php.d/*.ini /etc/php.d/
-COPY etc/php.d/05-additions.ini.template /etc/php.d/
+COPY etc/php.d/*.ini /usr/local/etc/php/conf.d
+COPY etc/php.d/05-additions.ini.template /usr/local/etc/php/conf.d
 
-# Install mhsendmail to support routing email through mailhog
-RUN mkdir -p /tmp/mhsendmail \
-    && cd /tmp/mhsendmail \
-    && curl -vLOs https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
-    && chmod +x mhsendmail_linux_amd64 \
-    && mv mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
+RUN set -eux \
+    && cp ${PHP_INI_DIR}/php.ini-development ${PHP_INI_DIR}/php.ini \
+    && perl -pi -e 's/memory_limit(.*)/memory_limit=-1/g' ${PHP_INI_DIR}/php.ini
 
-# Install awscli to support data backfill workflows using S3 storage; segno for QR code generation
-RUN pip3 install awscli segno --no-cache-dir
+# Install Composer
+COPY --from=composer:1 /usr/bin/composer /usr/bin/composer1
+COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer2lts
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer2
+
+# If PHP < 7.2
+RUN if [ "$(printf "7.2\n${PHP_VERSION}" | sort -g | head -n1)" != "7.2" ]; \
+    then mv -f /usr/bin/composer2lts /usr/bin/composer2; fi
+
+# If PHP < 7.3
+RUN if [ "$(printf "7.3\n${PHP_VERSION}" | sort -g | head -n1)" != "7.3" ]; \
+    then apt-get install -y --no-install-recommends bind9utils; fi
+
+# If PHP >= 7.1
+RUN if [ "$(printf "7.1\n${PHP_VERSION}" | sort -g | head -n1)" = "7.1" ]; \
+    then apt-get install -y --no-install-recommends libmariadb3 libmariadb-dev \
+    && sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml; fi
+
+# If PHP >= 7.3
+RUN if [ "$(printf "7.3\n${PHP_VERSION}" | sort -g | head -n1)" = "7.3" ]; \
+    then apt-get install -y --no-install-recommends bind9-utils; fi
+
+RUN mkdir -p /etc/zsh/zshrc.d  \
+    && echo "autoload -U compinit; compinit" > /etc/zsh/zshrc.d/completions.zsh \
+    && ln -s /usr/bin/fish /bin/fish
+
+RUN set -eux; \
+	{ \
+		echo 'if [ -d /etc/profile.d ]; then'; \
+        echo '  for i in /etc/profile.d/*.sh; do'; \
+        echo '    if [ -r $i ]; then'; \
+        echo '      . $i'; \
+        echo '    fi'; \
+        echo '  done'; \
+        echo '  unset i'; \
+        echo 'fi'; \
+	} >> /etc/bash.bashrc;
+
+# Install Oh My Zsh including the following Plugins: git, composer and n98-magerun
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions.git $ZSH_CUSTOM/plugins/zsh-autosuggestions \
+    && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $ZSH_CUSTOM/plugins/zsh-syntax-highlighting \
+    && sed -i 's/plugins=(git)/plugins=(git composer n98-magerun zsh-autosuggestions zsh-syntax-highlighting)/g' /root/.zshrc
 
 # Configure www-data user as primary php-fpm user for better local dev experience
-RUN useradd www-data \
+RUN mkdir -p /home/www-data \
+    && chown www-data:www-data /home/www-data \
+    && usermod -d /home/www-data www-data \
+    && install -d -m 0755 -o www-data -g www-data /home/www-data \
     && chmod 0755 ~www-data \
     && mkdir -p /var/www/html \
     && chown www-data:www-data /var/www/html \
-    && echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
-    && PHP_FPM_USER=$(grep -i '^user = ' /etc/php-fpm.d/www.conf | awk '{print $3}') \
-    && PHP_FPM_GROUP=$(grep -i '^group = ' /etc/php-fpm.d/www.conf | awk '{print $3}') \
-    && find /var/log /var/lib/php -uid $(id -u ${PHP_FPM_USER}) | xargs chown www-data \
-    && find /var/log /var/lib/php -gid $(id -g ${PHP_FPM_GROUP}) | xargs chgrp www-data \
-    && perl -pi -e 's/^(user|group) = php-fpm$/$1 = www-data/g' /etc/php-fpm.d/www.conf
+    && echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
+STOPSIGNAL SIGQUIT
+
+ENTRYPOINT ["docker-entrypoint"]
 WORKDIR /var/www/html
 USER www-data
+EXPOSE 9000
+CMD ["php-fpm"]

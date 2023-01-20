@@ -1,6 +1,5 @@
 ARG NGINX_VERSION
-FROM nginx:${NGINX_VERSION}-alpine
-RUN apk add --no-cache bash shadow
+FROM nginx:${NGINX_VERSION}
 
 ENV NGINX_UPSTREAM_HOST           php-fpm
 ENV NGINX_UPSTREAM_PORT           9000

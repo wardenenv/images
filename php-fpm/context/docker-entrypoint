@@ -1,22 +1,44 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-# configure php additions.ini
-cat /etc/php.d/05-additions.ini.template \
-  | envsubst '${MAILHOG_HOST} ${MAILHOG_PORT}' \
-  | sudo tee /etc/php.d/05-additions.ini
+echo "USER ID: $(id -g)"
+echo "USER GROUP ID: $(id -g)"
+echo "CHANGE TO USER ID: ${USER_ID}"
+echo "CHANGE TO GROUP ID: ${GROUP_ID}"
+echo "OSTYPE: ${OSTYPE}"
 
-# append warden issued root ca cert to ca-bundle trusted by curl/openssl
-if [ -f /etc/ssl/warden-rootca-cert/ca.cert.pem ]; then
-  sudo cp /etc/ssl/warden-rootca-cert/ca.cert.pem /etc/pki/ca-trust/source/anchors/warden-rootca-cert.pem
+if [[ "$OSTYPE" =~ ^linux ]]; then
+	userdel -f www-data && true
+	groupadd -g ${GROUP_ID} www-data &&\
+	useradd -l -u ${USER_ID} -g www-data www-data &&\
+	usermod -a -G ${GROUP_ID} www-data &&\
+	install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+	mkdir -p /var/www/html &&\
+	chown --changes --silent --no-dereference --recursive \
+				--from=33:33 ${USER_ID}:${GROUP_ID} \
+			/home/www-data \
+			/var/www \
+			/var/www/html &&\
+	chmod 0755 ~www-data &&\
+	echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+fi
+
+# configure php additions.ini
+cat /usr/local/etc/php/conf.d/05-additions.ini.template \
+  | envsubst '${MAILHOG_HOST} ${MAILHOG_PORT}' \
+  | sudo tee /usr/local/etc/php/conf.d/05-additions.ini
+
+# append roll issued root ca cert to ca-bundle trusted by curl/openssl
+if [ -f /etc/ssl/roll-rootca-cert/ca.cert.pem ]; then
+  sudo cp /etc/ssl/roll-rootca-cert/ca.cert.pem /usr/local/share/ca-certificates/roll-rootca-cert.pem.crt
 fi
 
 # update trust outside if condition above to allow mounting PEM files into /etc/pki/ca-trust/source/anchors
-sudo update-ca-trust
+sudo update-ca-certificates 2>/dev/null
 
 # start socat process in background to connect sockets used for agent access within container environment
-if [[ -S /run/host-services/ssh-auth.sock ]] \
-  && [[ "${SSH_AUTH_SOCK}" != "/run/host-services/ssh-auth.sock" ]]
+if [ -S /run/host-services/ssh-auth.sock ] \
+  && [ "${SSH_AUTH_SOCK}" != "/run/host-services/ssh-auth.sock" ]
 then
   sudo rm -f "${SSH_AUTH_SOCK}"
   sudo bash -c "nohup socat UNIX-CLIENT:/run/host-services/ssh-auth.sock \
@@ -24,15 +46,7 @@ then
 fi
 
 # start crond as a background process
-sudo crond
-
-# install requested node version if not already installed
-NODE_INSTALLED="$(node -v | perl -pe 's/^v([0-9]+)\..*$/$1/')";
-if [ "${NODE_INSTALLED}" != "${NODE_VERSION}" ] \
-  || [ "${NODE_VERSION}" = "latest" ] || [ "${NODE_VERSION}" = "lts" ]
-then
-  sudo /usr/local/bin/n "${NODE_VERSION}"
-fi
+sudo service cron start
 
 # Configure composer2 as default when specified
 if [[ "${COMPOSER_VERSION:=2}" == "2.2" ]]; then
@@ -47,11 +61,11 @@ fi
 # a list of directories (relative to working directory) to chown, walking up the paths to also chown each
 # specified parent directory. Example: "dir1/dir2 dir3" will chown dir1/dir2, then dir1 followed by dir3
 for DIR in ${CHOWN_DIR_LIST:-}; do
-  if [[ -d "${DIR}" ]]; then
+  if [ -d "${DIR}" ]; then
     while :; do
       sudo chown www-data:www-data "${DIR}"
       DIR=$(dirname "${DIR}")
-      if [[ ${DIR} == "." ]] || [[ ${DIR} == "/" ]] || [[ ${DIR} == "/home" ]]; then
+      if [ ${DIR} = "." ] || [ ${DIR} = "/" ] || [ ${DIR} = "/home" ]; then
         break;
       fi
     done
