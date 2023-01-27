@@ -90,10 +90,6 @@ COPY etc/profile.d/*.sh /etc/profile.d/
 COPY etc/php.d/*.ini /usr/local/etc/php/conf.d
 COPY etc/php.d/05-additions.ini.template /usr/local/etc/php/conf.d
 
-RUN set -eux \
-    && cp ${PHP_INI_DIR}/php.ini-development ${PHP_INI_DIR}/php.ini \
-    && perl -pi -e 's/memory_limit(.*)/memory_limit=-1/g' ${PHP_INI_DIR}/php.ini
-
 # Install Composer
 COPY --from=composer:1 /usr/bin/composer /usr/bin/composer1
 COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer2lts
