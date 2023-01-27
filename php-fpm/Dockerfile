@@ -81,7 +81,9 @@ RUN set -eux; \
     htop \
     chromium \
     imagemagick \
-    graphicsmagick
+    graphicsmagick; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 
 COPY docker-entrypoint /usr/local/bin/
 COPY etc/profile.d/*.sh /etc/profile.d/
