@@ -57,6 +57,7 @@ fi
 ## define image repository to push
 WARDEN_IMAGE_REPOSITORY="${WARDEN_IMAGE_REPOSITORY:-"docker.io/wardenenv"}"
 
+docker buildx create --use
 ## iterate over and build each Dockerfile
 for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     BUILD_DIR="$(dirname "${file}")"
@@ -118,6 +119,6 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     fi
 
     printf "\e[01;31m==> building ${IMAGE_TAG} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
-    docker build -t "${IMAGE_TAG}" -f ${BUILD_DIR}/Dockerfile ${BUILD_ARGS[@]} ${BUILD_CONTEXT}
+    docker buildx build --platform=linux/arm64,linux/amd64 -t "${IMAGE_TAG}" -f ${BUILD_DIR}/Dockerfile ${BUILD_ARGS[@]} ${BUILD_CONTEXT}
     [[ $PUSH_FLAG ]] && docker push "${IMAGE_TAG}" || true
 done

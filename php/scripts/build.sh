@@ -38,6 +38,7 @@ fi
 VERSION_LIST="${VERSION_LIST:-"7.4"}"
 VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 
+docker buildx create --use
 IMAGE_NAME="${IMAGE_NAME:-"davidalger/php"}"
 for BUILD_VERSION in ${VERSION_LIST}; do
   MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
@@ -50,7 +51,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
       "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
 
-    docker build -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    docker buildx build --platform=linux/amd64,linux/arm64 -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
     # Strip the term 'cli' from tag suffix as this is the default variant
     TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"

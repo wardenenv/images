@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 ARG PHP_VERSION
 ARG PHP_EXTENSIONS="bcmath cli common gd gmp intl json mbstring \
@@ -10,7 +10,7 @@ RUN dnf update -y \
 
 RUN set -eux \
     && dnf install -y epel-release \
-    && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm \
+    && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm \
     && dnf module reset php -y \
     && dnf module install -y php:remi-${PHP_VERSION} \
     && PHP_VERSION=$(echo ${PHP_VERSION} | awk -F '.' '{print $1$2}') \
