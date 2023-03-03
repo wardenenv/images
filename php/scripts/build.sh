@@ -19,13 +19,13 @@ readonly BASE_DIR="$(
 pushd "${BASE_DIR}" >/dev/null
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
-PUSH_FLAG=${PUSH_FLAG:-0}
+PUSH_FLAG=${PUSH_FLAG:=0}
 if [[ "${1:-}" = "--push" ]]; then
   PUSH_FLAG=1
 fi
 
 ## login to docker hub as needed
-if [[ $PUSH_FLAG && ${PRE_AUTH:-0} != 1 ]]; then
+if [[ $PUSH_FLAG != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   if [ -t 1 ]; then
     docker login
   else
@@ -70,7 +70,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     for TAG in "${IMAGE_TAGS[@]}"; do
       docker tag "${IMAGE_NAME}:build" "${TAG}"
       echo "Successfully tagged ${TAG}"
-      [[ $PUSH_FLAG ]] && docker push "${TAG}"
+      if [[ ${PUSH_FLAG} != 0 ]]; then docker push "${TAG}"; fi
     done
     docker image rm "${IMAGE_NAME}:build"
   done

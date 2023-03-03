@@ -44,7 +44,7 @@ if [[ -z ${SEARCH_PATH} ]]; then
 fi
 
 ## login to docker hub as needed
-if [[ ${PUSH_FLAG} && ${PRE_AUTH:-0} != 1 ]]; then
+if [[ ${PUSH_FLAG} != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   if [[ ${DOCKER_USERNAME:-} ]]; then
     echo "Attempting non-interactive docker login (via provided credentials)"
     echo "${DOCKER_PASSWORD:-}" | docker login -u "${DOCKER_USERNAME:-}" --password-stdin ${DOCKER_REGISTRY:-docker.io}
@@ -120,5 +120,5 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
 
     printf "\e[01;31m==> building ${IMAGE_TAG} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
     docker buildx build --platform=linux/arm64,linux/amd64 -t "${IMAGE_TAG}" -f ${BUILD_DIR}/Dockerfile ${BUILD_ARGS[@]} ${BUILD_CONTEXT}
-    [[ $PUSH_FLAG ]] && docker push "${IMAGE_TAG}" || true
+    if [[ $PUSH_FLAG != 0 ]]; then docker push "${IMAGE_TAG}"; fi
 done
