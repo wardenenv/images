@@ -1,6 +1,10 @@
 ARG PHP_SOURCE_IMAGE="docker.io/davidalger/php"
 ARG PHP_VERSION
 ARG PHP_VARIANT="fpm-loaders"
+
+FROM golang:alpine AS mhs-builder
+RUN go install github.com/mailhog/mhsendmail@latest
+
 FROM ${PHP_SOURCE_IMAGE}:${PHP_VERSION}-${PHP_VARIANT}
 
 # Clear undesired settings from base fpm images
@@ -15,12 +19,7 @@ RUN dnf install -y which pv sudo bind-utils python3-pip bash-completion rsync so
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-RUN dnf install -y python2 \
-    && ln -s /bin/python2 /bin/python \
-    && dnf clean all \
-    && rm -rf /var/cache/dnf
-
-ENV NODE_VERSION    10
+ENV NODE_VERSION    18
 RUN npm install -g n \
     && n install ${NODE_VERSION} \
     && rm -rf /usr/local/n/versions/node
@@ -32,11 +31,7 @@ COPY etc/php.d/*.ini /etc/php.d/
 COPY etc/php.d/05-additions.ini.template /etc/php.d/
 
 # Install mhsendmail to support routing email through mailhog
-RUN mkdir -p /tmp/mhsendmail \
-    && cd /tmp/mhsendmail \
-    && curl -vLOs https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
-    && chmod +x mhsendmail_linux_amd64 \
-    && mv mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
+COPY --from=mhs-builder /go/bin/mhsendmail /usr/local/bin/mhsendmail
 
 # Install awscli to support data backfill workflows using S3 storage; segno for QR code generation
 RUN pip3 install awscli segno --no-cache-dir
