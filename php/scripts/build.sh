@@ -41,7 +41,7 @@ VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 docker buildx create --use
 IMAGE_NAME="${IMAGE_NAME:-"davidalger/php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
-  IMAGE_NAME = "${IMAGE_NAME}-indev"
+  IMAGE_NAME="${IMAGE_NAME}-indev"
 fi
 for BUILD_VERSION in ${VERSION_LIST}; do
   MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
