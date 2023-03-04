@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths:
       - php/**
       - .github/workflows/php.yml
@@ -28,6 +29,7 @@ jobs:
           VERSION_LIST: 7.4 8.0 8.1 8.2
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash php/scripts/build.sh
 
   php-fpm:
@@ -55,6 +57,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
       - uses: docker/login-action@v2
         with:
@@ -68,6 +71,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
 
   magento1:
@@ -95,6 +99,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
       - uses: docker/login-action@v2
         with:
@@ -108,6 +113,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
 
   magento2:
@@ -135,6 +141,7 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"
       - uses: docker/login-action@v2
         with:
@@ -148,4 +155,5 @@ jobs:
           PUSH_FLAG: 1
           PHP_VERSION: ${{ matrix.php_version }}
           PHP_VARIANT: ${{ matrix.php_variant }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && 0 || 1 }}
         run: bash scripts/build.sh "${BUILD_GROUP}"

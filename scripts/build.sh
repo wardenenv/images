@@ -62,6 +62,9 @@ docker buildx create --use
 for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     BUILD_DIR="$(dirname "${file}")"
     IMAGE_TAG="${WARDEN_IMAGE_REPOSITORY}/$(echo "${BUILD_DIR}" | cut -d/ -f1)"
+    if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+      IMAGE_TAG = "${IMAGE_TAG}-indev"
+    fi
     IMAGE_SUFFIX="$(echo "${BUILD_DIR}" | cut -d/ -f2- -s | tr / - | sed 's/^-//')"
     echo $IMAGE_SUFFIX
 
