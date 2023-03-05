@@ -54,7 +54,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
       "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
 
-    docker buildx build -o type=docker --platform=linux/amd64,linux/arm64 -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    docker build -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
     # Strip the term 'cli' from tag suffix as this is the default variant
     TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
@@ -70,11 +70,8 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     )
 
     # Iterate and push image tags to remote registry
-    for TAG in "${IMAGE_TAGS[@]}"; do
-      docker tag "${IMAGE_NAME}:build" "${TAG}"
-      echo "Successfully tagged ${TAG}"
-      if [[ ${PUSH_FLAG} != 0 ]]; then docker push "${TAG}"; fi
-    done
-    docker image rm "${IMAGE_NAME}:build"
+    if [[ ${PUSH_FLAG} != 0 ]]; then
+      docker buildx build --push --platform=linux/arm64,linux/amd64 -t "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}" -t "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    fi
   done
 done
