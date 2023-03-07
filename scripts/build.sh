@@ -58,6 +58,17 @@ fi
 WARDEN_IMAGE_REPOSITORY="${WARDEN_IMAGE_REPOSITORY:-"docker.io/wardenenv"}"
 
 docker buildx create --use
+
+export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"docker.io/davidalger/php"}"
+if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+  export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE}-indev"
+fi
+
+export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE:-"${WARDEN_IMAGE_REPOSITORY}/php-fpm"}"
+if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+  export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE}-indev"
+fi
+
 ## iterate over and build each Dockerfile
 for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     BUILD_DIR="$(dirname "${file}")"
@@ -82,17 +93,9 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
       fi
 
       ## define default sources for main php and environment images
-      export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"docker.io/davidalger/php"}"
-      if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
-        export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE}-indev"
-      fi
       BUILD_ARGS+=("--build-arg")
       BUILD_ARGS+=("PHP_SOURCE_IMAGE")
 
-      export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE:-"${WARDEN_IMAGE_REPOSITORY}/php-fpm"}"
-      if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
-        export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE}-indev"
-      fi
       BUILD_ARGS+=("--build-arg")
       BUILD_ARGS+=("ENV_SOURCE_IMAGE")
 
