@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/bin/magepack generate "$@"
+/usr/local/bin/magepack generate "$@"

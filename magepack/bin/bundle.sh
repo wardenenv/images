@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/bin/magepack bundle
+/usr/local/bin/magepack bundle
