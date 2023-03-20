@@ -19,13 +19,13 @@ readonly BASE_DIR="$(
 pushd "${BASE_DIR}" >/dev/null
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
-PUSH_FLAG=${PUSH_FLAG:-0}
+PUSH_FLAG=${PUSH_FLAG:=0}
 if [[ "${1:-}" = "--push" ]]; then
   PUSH_FLAG=1
 fi
 
 ## login to docker hub as needed
-if [[ $PUSH_FLAG && ${PRE_AUTH:-0} != 1 ]]; then
+if [[ $PUSH_FLAG != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   if [ -t 1 ]; then
     docker login
   else
@@ -38,7 +38,11 @@ fi
 VERSION_LIST="${VERSION_LIST:-"7.4"}"
 VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 
+docker buildx create --use
 IMAGE_NAME="${IMAGE_NAME:-"davidalger/php"}"
+if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+  IMAGE_NAME="${IMAGE_NAME}-indev"
+fi
 for BUILD_VERSION in ${VERSION_LIST}; do
   MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
   for BUILD_VARIANT in ${VARIANT_LIST}; do
@@ -66,11 +70,8 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     )
 
     # Iterate and push image tags to remote registry
-    for TAG in "${IMAGE_TAGS[@]}"; do
-      docker tag "${IMAGE_NAME}:build" "${TAG}"
-      echo "Successfully tagged ${TAG}"
-      [[ $PUSH_FLAG ]] && docker push "${TAG}"
-    done
-    docker image rm "${IMAGE_NAME}:build"
+    if [[ ${PUSH_FLAG} != 0 ]]; then
+      docker buildx build --push --platform=linux/arm64,linux/amd64 -t "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}" -t "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    fi
   done
 done

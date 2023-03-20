@@ -44,7 +44,7 @@ if [[ -z ${SEARCH_PATH} ]]; then
 fi
 
 ## login to docker hub as needed
-if [[ ${PUSH_FLAG} && ${PRE_AUTH:-0} != 1 ]]; then
+if [[ ${PUSH_FLAG} != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   if [[ ${DOCKER_USERNAME:-} ]]; then
     echo "Attempting non-interactive docker login (via provided credentials)"
     echo "${DOCKER_PASSWORD:-}" | docker login -u "${DOCKER_USERNAME:-}" --password-stdin ${DOCKER_REGISTRY:-docker.io}
@@ -57,10 +57,25 @@ fi
 ## define image repository to push
 WARDEN_IMAGE_REPOSITORY="${WARDEN_IMAGE_REPOSITORY:-"docker.io/wardenenv"}"
 
+docker buildx create --use
+
+export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"docker.io/davidalger/php"}"
+if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+  export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE}-indev"
+fi
+
+export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE:-"${WARDEN_IMAGE_REPOSITORY}/php-fpm"}"
+if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+  export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE}-indev"
+fi
+
 ## iterate over and build each Dockerfile
 for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     BUILD_DIR="$(dirname "${file}")"
     IMAGE_TAG="${WARDEN_IMAGE_REPOSITORY}/$(echo "${BUILD_DIR}" | cut -d/ -f1)"
+    if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
+      IMAGE_TAG="${IMAGE_TAG}-indev"
+    fi
     IMAGE_SUFFIX="$(echo "${BUILD_DIR}" | cut -d/ -f2- -s | tr / - | sed 's/^-//')"
     echo $IMAGE_SUFFIX
 
@@ -78,11 +93,9 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
       fi
 
       ## define default sources for main php and environment images
-      export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"docker.io/davidalger/php"}"
       BUILD_ARGS+=("--build-arg")
       BUILD_ARGS+=("PHP_SOURCE_IMAGE")
 
-      export ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE:-"${WARDEN_IMAGE_REPOSITORY}/php-fpm"}"
       BUILD_ARGS+=("--build-arg")
       BUILD_ARGS+=("ENV_SOURCE_IMAGE")
 
@@ -118,6 +131,6 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     fi
 
     printf "\e[01;31m==> building ${IMAGE_TAG} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
-    docker build -t "${IMAGE_TAG}" -f ${BUILD_DIR}/Dockerfile ${BUILD_ARGS[@]} ${BUILD_CONTEXT}
-    [[ $PUSH_FLAG ]] && docker push "${IMAGE_TAG}" || true
+    if [[ $PUSH_FLAG != 0 ]]; then PUSH_ARG="--push"; fi
+    docker buildx build --platform=linux/arm64,linux/amd64 ${PUSH_ARG:-} -t "${IMAGE_TAG}" -f ${BUILD_DIR}/Dockerfile ${BUILD_ARGS[@]} ${BUILD_CONTEXT}
 done
