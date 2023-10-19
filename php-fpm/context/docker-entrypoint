@@ -26,14 +26,6 @@ fi
 # start crond as a background process
 sudo crond
 
-# install requested node version if not already installed
-NODE_INSTALLED="$(node -v | perl -pe 's/^v([0-9]+)\..*$/$1/')";
-if [ "${NODE_INSTALLED}" != "${NODE_VERSION}" ] \
-  || [ "${NODE_VERSION}" = "latest" ] || [ "${NODE_VERSION}" = "lts" ]
-then
-  sudo /usr/local/bin/n "${NODE_VERSION}"
-fi
-
 # Configure composer2 as default when specified
 if [[ "${COMPOSER_VERSION:=2}" == "2.2" ]]; then
   sudo cp /usr/bin/composer2lts /usr/bin/composer
@@ -66,6 +58,15 @@ sudo chown www-data:www-data /var/www/html
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
   set -- php-fpm "$@"
+fi
+
+# install requested node version if not already installed
+NODE_INSTALLED="$(node -v | perl -pe 's/^v([0-9]+)\..*$/$1/')";
+if [ "${NODE_INSTALLED}" != "${NODE_VERSION}" ] \
+  || [ "${NODE_VERSION}" = "latest" ] || [ "${NODE_VERSION}" = "lts" ]
+then
+  set +e # do not error if node install fails
+  sudo /usr/local/bin/n "${NODE_VERSION}"
 fi
 
 exec "$@"
