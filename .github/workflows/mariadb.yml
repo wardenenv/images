@@ -30,9 +30,7 @@ jobs:
           - "10.10"
           - "10.11"
           - "11.0"
-        include:
-          - version: "11.1"
-            modifier: "-rc"
+          - "11.1"
 
     steps:
       - uses: actions/checkout@v3
