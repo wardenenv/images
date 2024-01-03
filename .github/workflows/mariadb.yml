@@ -31,6 +31,8 @@ jobs:
           - "10.11"
           - "11.0"
           - "11.1"
+          - "11.2"
+          - "11.3-rc"
 
     steps:
       - uses: actions/checkout@v3
