@@ -6,6 +6,8 @@ ENV NGINX_UPSTREAM_HOST           php-fpm
 ENV NGINX_UPSTREAM_PORT           9000
 ENV NGINX_UPSTREAM_DEBUG_HOST     php-debug
 ENV NGINX_UPSTREAM_DEBUG_PORT     9000
+ENV NGINX_UPSTREAM_SPX_HOST       php-spx
+ENV NGINX_UPSTREAM_SPX_PORT       9000
 ENV NGINX_UPSTREAM_BLACKFIRE_HOST php-blackfire
 ENV NGINX_UPSTREAM_BLACKFIRE_PORT 9000
 ENV NGINX_ROOT                    /var/www/html
@@ -20,6 +22,7 @@ COPY etc/nginx/available.d/*.conf /etc/nginx/available.d/
 CMD envsubst '${NGINX_UPSTREAM_HOST} ${NGINX_UPSTREAM_PORT} \
               ${NGINX_UPSTREAM_BLACKFIRE_HOST} ${NGINX_UPSTREAM_BLACKFIRE_PORT} \
               ${NGINX_UPSTREAM_DEBUG_HOST} ${NGINX_UPSTREAM_DEBUG_PORT} \
+              ${NGINX_UPSTREAM_SPX_HOST} ${NGINX_UPSTREAM_SPX_PORT} \
               ${NGINX_ROOT} ${NGINX_PUBLIC} ${NGINX_TEMPLATE}' \
         < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf \
     && envsubst '${XDEBUG_CONNECT_BACK_HOST}' \
