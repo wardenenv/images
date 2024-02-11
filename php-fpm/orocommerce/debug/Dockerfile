@@ -1,0 +1,8 @@
+ARG ENV_SOURCE_IMAGE
+ARG PHP_VERSION
+FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}-orocommerce
+USER root
+
+COPY *.ini /etc/php.d/
+
+USER www-data
