@@ -79,8 +79,8 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     IMAGE_SUFFIX="$(echo "${BUILD_DIR}" | cut -d/ -f2- -s | tr / - | sed 's/^-//')"
     echo $IMAGE_SUFFIX
 
-    ## due to build matrix requirements, magento1 and magento2 specific varients are built in separate invocation
-    if [[ ${SEARCH_PATH} == "php-fpm" ]] && [[ ${file} =~ php-fpm/magento[1-2] ]]; then
+    ## due to build matrix requirements, magento and orocommerce specific varients are built in separate invocation
+    if [[ ${SEARCH_PATH} == "php-fpm" ]] && [[ ${file} =~ php-fpm/magento[1-2] || ${file} == "orocommerce" ]]; then
       continue;
     fi
 
