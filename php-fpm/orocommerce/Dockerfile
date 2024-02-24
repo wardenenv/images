@@ -2,7 +2,7 @@ ARG ENV_SOURCE_IMAGE
 ARG PHP_VERSION
 
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
-ARG PHP_EXTENSIONS="pcntl pgsql pdo_pgsql imap tidy ldap pecl-mongodb"
+ARG PHP_EXTENSIONS="pcntl imap tidy ldap pecl-mongodb"
 
 USER root
 
