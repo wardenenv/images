@@ -2,7 +2,7 @@ FROM quay.io/centos/centos:stream9
 
 ARG PHP_VERSION
 ARG PHP_EXTENSIONS="bcmath cli common gd gmp intl json mbstring \
-    mcrypt sodium mysqlnd pgsql opcache pdo pdo_pgsql pecl-msgpack pecl-amqp pecl-redis pecl-imagick pecl-zip process soap xml xmlrpc"
+    mcrypt sodium mysqlnd pgsql opcache pdo pdo_pgsql pecl-msgpack pecl-amqp pecl-redis pecl-imagick pecl-zip pecl-openswoole process soap xml xmlrpc"
 
 RUN dnf update -y \
     && dnf clean all \
