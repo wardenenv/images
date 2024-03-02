@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+
+# Start supervisord
+if [[ ${SUPERVISORD_START:-1} -eq 1 && -e /var/www/html/vendor/oro/platform/src/Oro/Component/MessageQueue/Client/ConsumeMessagesCommand.php ]]; then
+    sudo /usr/bin/supervisord -c /etc/supervisord.conf &
+fi
