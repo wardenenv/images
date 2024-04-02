@@ -14,7 +14,7 @@ on:
       - scripts/build.sh
 jobs:
   legacy-php:
-    name: Build PHP Images
+    name: Build Legacy PHP Images
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
