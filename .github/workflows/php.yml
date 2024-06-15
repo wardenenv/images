@@ -186,7 +186,7 @@ jobs:
         run: bash scripts/build.sh "${BUILD_GROUP}"
 
   orocommerce:
-    name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (orocommerce)
+    name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (OroCommerce)
     runs-on: ubuntu-latest
     needs: php-fpm
     strategy:

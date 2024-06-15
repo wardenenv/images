@@ -124,8 +124,13 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
       continue
     fi
 
-    if [[ -d "$(echo ${BUILD_DIR} | cut -d/ -f1)/context" ]]; then
+    # Allow child builds to have their own context directory (e.g. php-fpm/magento2/context)
+    if [[ -d "${BUILD_DIR}/context" ]]; then
+      BUILD_CONTEXT="${BUILD_DIR}/context"
+    # Check if parent directory has a specific context directory
+    elif [[ -d "$(echo ${BUILD_DIR} | cut -d/ -f1)/context" ]]; then
       BUILD_CONTEXT="$(echo ${BUILD_DIR} | cut -d/ -f1)/context"
+    # Use the entire build directory as the context
     else
       BUILD_CONTEXT="${BUILD_DIR}"
     fi
