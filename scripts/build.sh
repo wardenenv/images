@@ -79,8 +79,8 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
     IMAGE_SUFFIX="$(echo "${BUILD_DIR}" | cut -d/ -f2- -s | tr / - | sed 's/^-//')"
     echo $IMAGE_SUFFIX
 
-    ## due to build matrix requirements, magento1 and magento2 specific varients are built in separate invocation
-    if [[ ${SEARCH_PATH} == "php-fpm" ]] && [[ ${file} =~ php-fpm/magento[1-2] ]]; then
+    ## due to build matrix requirements, magento and orocommerce specific varients are built in separate invocation
+    if [[ ${SEARCH_PATH} == "php-fpm" ]] && [[ ${file} =~ php-fpm/magento[1-2] || ${file} == "orocommerce" ]]; then
       continue;
     fi
 
@@ -124,8 +124,13 @@ for file in $(find ${SEARCH_PATH} -type f -name Dockerfile | sort -V); do
       continue
     fi
 
-    if [[ -d "$(echo ${BUILD_DIR} | cut -d/ -f1)/context" ]]; then
+    # Allow child builds to have their own context directory (e.g. php-fpm/magento2/context)
+    if [[ -d "${BUILD_DIR}/context" ]]; then
+      BUILD_CONTEXT="${BUILD_DIR}/context"
+    # Check if parent directory has a specific context directory
+    elif [[ -d "$(echo ${BUILD_DIR} | cut -d/ -f1)/context" ]]; then
       BUILD_CONTEXT="$(echo ${BUILD_DIR} | cut -d/ -f1)/context"
+    # Use the entire build directory as the context
     else
       BUILD_CONTEXT="${BUILD_DIR}"
     fi
