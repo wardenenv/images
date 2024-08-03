@@ -13,6 +13,8 @@ ENV NGINX_PUBLIC                  ''
 ENV NGINX_TEMPLATE                application.conf
 ENV XDEBUG_CONNECT_BACK_HOST      '""'
 
+RUN sed -i '1s/^/load_module \/etc\/nginx\/modules\/ngx_http_image_filter_module.so;\n\n/' /etc/nginx/nginx.conf
+
 COPY etc/nginx/fastcgi_params /etc/nginx/fastcgi_params.template
 COPY etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.template
 COPY etc/nginx/available.d/*.conf /etc/nginx/available.d/
