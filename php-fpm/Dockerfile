@@ -19,7 +19,7 @@ RUN dnf install -y which pv sudo bind-utils python3-pip bash-completion rsync so
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-ENV NODE_VERSION    18
+ENV NODE_VERSION 20
 RUN npm install -g n \
     && n install ${NODE_VERSION} \
     && rm -rf /usr/local/n/versions/node

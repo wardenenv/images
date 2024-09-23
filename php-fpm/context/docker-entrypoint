@@ -27,12 +27,16 @@ fi
 sudo crond
 
 # Configure composer2 as default when specified
-if [[ "${COMPOSER_VERSION:=2}" == "2.2" ]]; then
+COMPOSER_VERSION="${COMPOSER_VERSION:=2}"
+
+if [[ "$COMPOSER_VERSION" =~ ^1(\.[0-9]+){0,2}$ ]]; then
+  sudo cp /usr/bin/composer1 /usr/bin/composer
+elif [[ "$COMPOSER_VERSION" =~ ^2\.2(\.[0-9]+)?$ ]]; then
   sudo cp /usr/bin/composer2lts /usr/bin/composer
-elif [[ "${COMPOSER_VERSION}" == "2" ]]; then
+elif [[ "$COMPOSER_VERSION" =~ ^2(\.[0-9]+){0,2}$ ]]; then
   sudo cp /usr/bin/composer2 /usr/bin/composer
 else
-  sudo cp /usr/bin/composer1 /usr/bin/composer
+  sudo cp /usr/bin/composer2 /usr/bin/composer
 fi
 
 # Resolve permission issues with directories auto-created by volume mounts; to use set CHOWN_DIR_LIST to
