@@ -24,7 +24,7 @@ jobs:
           - "6.2"
           - "7.0"
           - "7.2"
-          - "7.4-rc"
+          - "7.4"
 
     steps:
       - uses: actions/checkout@v3
