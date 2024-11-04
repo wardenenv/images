@@ -24,6 +24,7 @@ jobs:
           - "7.3"
           - "7.4"
           - "7.5"
+          - "7.6"
 
     steps:
       - uses: actions/checkout@v3
