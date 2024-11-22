@@ -18,6 +18,7 @@ RUN set -eux \
     && PHP_PACKAGES= && for PKG in ${PHP_EXTENSIONS}; do \
         if [[ ${PKG} = "mcrypt" ]] && (( ${PHP_VERSION} > 71 )); then continue; fi; \
         if [[ ${PKG} = "sodium" ]] && (( ${PHP_VERSION} < 72 )); then continue; fi; \
+        if [[ ${PKG} = "xmlrpc" ]] && (( ${PHP_VERSION} > 83 )); then continue; fi; \
         PHP_PACKAGES+="php-${PKG} "; \
     done \
     && dnf install -y ${PHP_PACKAGES} git perl which npm patch gettext unzip bzip2 pwgen procps nmap-ncat jq \

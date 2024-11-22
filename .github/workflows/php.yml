@@ -16,6 +16,9 @@ jobs:
   legacy-php:
     name: Build Legacy PHP Images
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php_version: [ "7.4", "8.0", "8.1" ]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
@@ -29,7 +32,7 @@ jobs:
         env:
           PRE_AUTH: 1
           IMAGE_NAME: ghcr.io/wardenenv/centos-php
-          VERSION_LIST: 7.4 8.0
+          VERSION_LIST: ${{ matrix.php_version }}
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
@@ -37,6 +40,9 @@ jobs:
   php:
     name: Build PHP Images
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php_version: ["8.2", "8.3", "8.4"]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
@@ -50,7 +56,7 @@ jobs:
         env:
           PRE_AUTH: 1
           IMAGE_NAME: ghcr.io/wardenenv/centos-php
-          VERSION_LIST: 8.1 8.2 8.3 8.4
+          VERSION_LIST: ${{ matrix.php_version }}
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
