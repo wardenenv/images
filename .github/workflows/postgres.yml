@@ -62,7 +62,7 @@ jobs:
         run: |-
           ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
           POSTGRES_VERSION=$(
-            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls postgres \
+            docker run --rm gcr.io/go-containerregistry/crane ls postgres \
             | egrep "^${ESCAPED_VERSION}(\.[0-9]+)?(-alpine)?\$" | sort -Vr | head -n1
           )
           echo "POSTGRES_VERSION=${POSTGRES_VERSION}" | tee /dev/stderr >> $GITHUB_ENV

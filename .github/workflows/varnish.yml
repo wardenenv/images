@@ -50,7 +50,7 @@ jobs:
         run: |-
           ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
           VARNISH_VERSION=$(
-            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls varnish \
+            docker run --rm gcr.io/go-containerregistry/crane ls varnish \
             | egrep "^${ESCAPED_VERSION}(\.[0-9]+)?(\.[0-9]+)?(-alpine)?\$" | sort -Vr | head -n1
           )
           echo "VARNISH_VERSION=${VARNISH_VERSION}" | tee /dev/stderr >> $GITHUB_ENV
@@ -97,7 +97,7 @@ jobs:
         run: |-
           ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
           VARNISH_VERSION=$(
-            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls varnish \
+            docker run --rm gcr.io/go-containerregistry/crane ls varnish \
             | egrep "^${ESCAPED_VERSION}(\.[0-9]+)?(\.[0-9]+)?(-alpine)?\$" | sort -Vr | head -n1
           )
           echo "VARNISH_VERSION=${VARNISH_VERSION}" | tee /dev/stderr >> $GITHUB_ENV

@@ -63,7 +63,7 @@ jobs:
         run: |-
           ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
           OPENSEARCH_VERSION=$(
-            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls docker.io/opensearchproject/opensearch \
+            docker run --rm gcr.io/go-containerregistry/crane ls docker.io/opensearchproject/opensearch \
             | egrep "^${ESCAPED_VERSION}\.[0-9]+(\.[0-9]+)?\$" | sort -Vr | head -n1
           )
           echo "OPENSEARCH_VERSION=${OPENSEARCH_VERSION}" | tee /dev/stderr >> $GITHUB_ENV

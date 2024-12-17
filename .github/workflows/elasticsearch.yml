@@ -69,7 +69,7 @@ jobs:
         run: |-
           ESCAPED_VERSION="$(echo ${{ matrix.version }} | sed 's/\./\\\./g')"
           ES_VERSION=$(
-            docker run --rm gcr.io/go-containerregistry/crane:v0.8.0 ls docker.elastic.co/elasticsearch/elasticsearch \
+            docker run --rm gcr.io/go-containerregistry/crane ls docker.elastic.co/elasticsearch/elasticsearch \
             | egrep "^${ESCAPED_VERSION}\.[0-9]+(\.[0-9]+)?\$" | sort -Vr | head -n1
           )
           echo "ES_VERSION=${ES_VERSION}" | tee /dev/stderr >> $GITHUB_ENV
