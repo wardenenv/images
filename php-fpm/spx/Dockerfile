@@ -14,7 +14,7 @@ RUN set -eux \
     && phpize \
     && ./configure \
     && make \
-    && sudo make install
+    && make install
 
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
 COPY --from=spx-builder /usr/lib64/php/modules/spx.so /usr/lib64/php/modules/spx.so
