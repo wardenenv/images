@@ -59,7 +59,7 @@ WARDEN_IMAGE_REPOSITORY="${WARDEN_IMAGE_REPOSITORY:-"docker.io/wardenenv"}"
 
 docker buildx create --use
 
-export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"docker.io/davidalger/php"}"
+export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE:-"ghcr.io/wardenenv/php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   export PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE}-indev"
 fi

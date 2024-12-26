@@ -39,7 +39,7 @@ VERSION_LIST="${VERSION_LIST:-"7.4"}"
 VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 
 docker buildx create --use
-IMAGE_NAME="${IMAGE_NAME:-"davidalger/php"}"
+IMAGE_NAME="${IMAGE_NAME:-"ghcr.io/wardenenv/php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
 fi
