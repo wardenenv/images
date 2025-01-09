@@ -3,7 +3,7 @@ ARG PHP_VERSION
 ARG PHP_VARIANT="fpm-loaders"
 
 FROM golang:alpine AS mhs-builder
-RUN go install github.com/mailhog/mhsendmail@latest
+RUN go install github.com/axllent/mailpit/sendmail@latest
 
 FROM ${PHP_SOURCE_IMAGE}:${PHP_VERSION}-${PHP_VARIANT}
 
@@ -32,7 +32,7 @@ COPY etc/php.d/*.ini /etc/php.d/
 COPY etc/php.d/05-additions.ini.template /etc/php.d/
 
 # Install mhsendmail to support routing email through mailhog
-COPY --from=mhs-builder /go/bin/mhsendmail /usr/local/bin/mhsendmail
+COPY --from=mhs-builder /go/bin/sendmail /usr/local/bin/mhsendmail
 
 # Install awscli to support data backfill workflows using S3 storage; segno for QR code generation
 RUN pip3 install awscli segno --no-cache-dir
