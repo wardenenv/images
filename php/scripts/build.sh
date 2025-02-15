@@ -55,7 +55,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
       "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
 
     # Build the multi-arch image, but don't load it because GitHub can't load multi-arch images
-    docker buildx build --platform=linux/arm64,linux/amd64 -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    docker buildx build --platform=${PLATFORMS} -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
     # Load the image appropriate for the current runner
     docker buildx build --load -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
@@ -76,7 +76,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     if [[ ${PUSH_FLAG} != 0 ]]; then
       docker buildx build \
         --push \
-        --platform=linux/arm64,linux/amd64 \
+        --platform=${PLATFORMS} \
         $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
         "${BUILD_VARIANT}" \
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
