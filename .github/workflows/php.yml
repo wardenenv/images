@@ -38,38 +38,13 @@ jobs:
         run: bash php/scripts/fetch-versions.sh
 
   legacy:
-    name: Build Legacy PHP Images
-    runs-on: ubuntu-latest
-    needs: [fetch-versions]
-    strategy:
-      matrix:
-        php_version: ${{ fromJSON(needs.fetch-versions.outputs.legacy_major_versions) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: cli cli-loaders fpm fpm-loaders
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: linux/amd64
-        run: bash php/scripts/build.sh
-
-  legacy-arm:
-    name: Build Legacy PHP Images (arm64)
+    name: Legacy PHP
     runs-on: ubuntu-24.04-arm
     needs: [fetch-versions]
     strategy:
       matrix:
         php_version: ${{ fromJSON(needs.fetch-versions.outputs.legacy_major_versions) }}
+        platform: [linux/amd64, linux/arm64]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -86,65 +61,129 @@ jobs:
           VARIANT_LIST: cli cli-loaders fpm fpm-loaders
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: linux/arm64
+          PLATFORMS: ${{ matrix.platform }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}
+          path: |
+            ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  legacy-push:
+    name: Push Legacy PHP Manifests
+    runs-on: ubuntu-24.04-arm
+    needs: [legacy]
+    strategy:
+      matrix:
+        php_version: ${{ fromJSON(needs.fetch-versions.outputs.legacy_major_versions) }}
+    steps:
+      - name: Download metadata
+        uses: actions/download-artifact@v2
+        with:
+          name: metadata-${{ matrix.php_version }}
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list ${{ matrix.php_version }}
+        run: |
+          tagDigests=$(jq -cs '{ tags: (map(keys) | add | unique), digests: (map(.[]) | add | unique) }' ${{ runner.temp }}/metadata/*)
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
+            $(jq -cr --arg registry "${WARDEN_IMAGE_REPOSITORY}" '.digests | map($registry + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+
+  # legacy-arm:
+  #   name: Legacy PHP (arm64)
+  #   runs-on: ubuntu-24.04-arm
+  #   needs: [fetch-versions]
+  #   strategy:
+  #     matrix:
+  #       php_version: ${{ fromJSON(needs.fetch-versions.outputs.legacy_major_versions) }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: docker/setup-buildx-action@v3
+  #     - uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.repository_owner }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Build & Push Images
+  #       env:
+  #         PRE_AUTH: 1
+  #         IMAGE_NAME: centos-php
+  #         VERSION_LIST: ${{ matrix.php_version }}
+  #         VARIANT_LIST: cli cli-loaders fpm fpm-loaders
+  #         PUSH_FLAG: 1
+  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+  #         PLATFORMS: linux/arm64
+  #       run: bash php/scripts/build.sh
     
-  active:
-    name: Build PHP Images
-    runs-on: ubuntu-latest
-    needs: [fetch-versions]
-    strategy:
-      matrix:
-        php_version: ${{ fromJSON(needs.fetch-versions.outputs.active_major_versions) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: cli cli-loaders fpm fpm-loaders
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: linux/amd64
-        run: bash php/scripts/build.sh
+  # active:
+  #   name: PHP
+  #   runs-on: ubuntu-24.04-arm
+  #   needs: [fetch-versions]
+  #   strategy:
+  #     matrix:
+  #       php_version: ${{ fromJSON(needs.fetch-versions.outputs.active_major_versions) }}
+  #       platform: [linux/amd64, linux/arm64]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: docker/setup-buildx-action@v3
+  #     - uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.repository_owner }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Build ${{ matrix.php_version}} (${{ matrix.platform }})
+  #       id: build-active
+  #       env:
+  #         PRE_AUTH: 1
+  #         IMAGE_NAME: centos-php
+  #         VERSION_LIST: ${{ matrix.php_version }}
+  #         VARIANT_LIST: cli cli-loaders fpm fpm-loaders
+  #         PUSH_FLAG: 0
+  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+  #         PLATFORMS: ${{ matrix.platform }}
+  #       run: bash php/scripts/build.sh
 
-  active-arm:
-    name: Build PHP Images (arm64)
-    runs-on: ubuntu-24.04-arm
-    needs: [fetch-versions]
-    strategy:
-      matrix:
-        php_version: ${{ fromJSON(needs.fetch-versions.outputs.active_major_versions) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: cli cli-loaders fpm fpm-loaders
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: linux/arm64
-        run: bash php/scripts/build.sh
+  #active-arm:
+  #  name: PHP (arm64)
+  #  runs-on: ubuntu-24.04-arm
+  #  needs: [fetch-versions]
+  #  strategy:
+  #    matrix:
+  #      php_version: ${{ fromJSON(needs.fetch-versions.outputs.active_major_versions) }}
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - uses: docker/setup-buildx-action@v3
+  #    - uses: docker/login-action@v3
+  #      with:
+  #        registry: ghcr.io
+  #        username: ${{ github.repository_owner }}
+  #        password: ${{ secrets.GITHUB_TOKEN }}
+  #    - name: Build & Push Images
+  #      env:
+  #        PRE_AUTH: 1
+  #        IMAGE_NAME: centos-php
+  #        VERSION_LIST: ${{ matrix.php_version }}
+  #        VARIANT_LIST: cli cli-loaders fpm fpm-loaders
+  #        PUSH_FLAG: 1
+  #        INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+  #        PLATFORMS: linux/arm64
+  #      run: bash php/scripts/build.sh
 
   # php-fpm:
   #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }}
   #   runs-on: ubuntu-24.04-arm
-  #   needs: [php, legacy-php]
+  #   needs: [active, legacy]
   #   strategy:
   #     matrix:
   #       php_version: ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4"]
