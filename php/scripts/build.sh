@@ -38,8 +38,8 @@ fi
 VERSION_LIST="${VERSION_LIST:-"7.4"}"
 VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 
-docker buildx create --use
-IMAGE_NAME="${IMAGE_NAME:-"ghcr.io/wardenenv/php"}"
+docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
+IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY:-"ghcr.io/wardenenv"}/${IMAGE_NAME:-"php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
 fi
@@ -54,7 +54,10 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
       "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
 
-    docker build -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    # Build the multi-arch image, but don't load it because GitHub can't load multi-arch images
+    docker buildx build --platform=linux/arm64,linux/amd64 -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    # Load the image appropriate for the current runner
+    docker buildx build --load -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
     # Strip the term 'cli' from tag suffix as this is the default variant
     TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
@@ -71,7 +74,12 @@ for BUILD_VERSION in ${VERSION_LIST}; do
 
     # Iterate and push image tags to remote registry
     if [[ ${PUSH_FLAG} != 0 ]]; then
-      docker buildx build --push --platform=linux/arm64,linux/amd64 -t "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}" -t "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+      docker buildx build \
+        --push \
+        --platform=linux/arm64,linux/amd64 \
+        $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
+        "${BUILD_VARIANT}" \
+        $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
     fi
   done
 done
