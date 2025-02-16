@@ -132,7 +132,7 @@ jobs:
         variant: [cli]
     steps:
       - name: Download metadata
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
@@ -248,7 +248,7 @@ jobs:
         variant: [cli-loaders, fpm]
     steps:
       - name: Download metadata
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
@@ -364,7 +364,7 @@ jobs:
         variant: [fpm-loaders]
     steps:
       - name: Download metadata
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
