@@ -1,16 +1,13 @@
 {
   "name": "get-php-versions",
   "description": "",
-  "main": "src/index.js",
+  "main": "src/main.js",
   "exports": {
     ".": "./dist/index.js"
   },
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
-    "bundle": "ncc build --source-map --minify",
-    "bundle:watch": "npm run bundle -- --watch",
+    "build": "ncc build src/index.js --source-map --minify",
+    "build:watch": "npm run build -- --watch",
     "local-action": "npx local-action . src/main.js .env"
   },
   "dependencies": {

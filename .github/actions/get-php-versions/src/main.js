@@ -41,9 +41,7 @@ export async function run() {
     }
 
     for (const [state, details] of Object.entries(data)) {
-        for (const [type, versions] of Object.entries(details)) {
-            core.setOutput(`php_${state}_versions`, JSON.stringify(details));
-        }
+        core.setOutput(`php_${state}_versions`, JSON.stringify(details));
     }
 }
 
