@@ -87,12 +87,15 @@ for BUILD_VERSION in ${VERSION_LIST}; do
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
         # $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
 
-      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{"$imageName": $tags}')
+      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{$imageName: $tags}')
+
+      echo "::notice title=Image Tags::${JSON}"
 
       # Create file placeholders for digests and tags
       digest=$(jq -r 'containerimage.digest' ${META_FILE} | cut -d ':' -f 2)
-      echo mkdir -p ${METADATA_DIR}
-      echo "${JSON}" > ${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS#linux/}.json
+      echo mkdir -p "${METADATA_DIR}"
+      touch "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS//\//-}.json"
+      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS#linux/}.json"
 
       # docker buildx build \
       #   --push \
