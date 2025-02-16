@@ -86,7 +86,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
         "${BUILD_VARIANT}" \
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
-      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{ $imageName: $tags | split(" ") }')
+      JSON=$(jq -cn --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{ $imageName: $tags | split(" ") }')
       echo "::notice title=Image Tags::${JSON}" >> $GITHUB_OUTPUT
 
       # Create file placeholders for digests and tags
