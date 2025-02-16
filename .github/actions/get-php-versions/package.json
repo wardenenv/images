@@ -1,8 +1,7 @@
 {
   "name": "get-php-versions",
   "description": "",
-  "main": "src/main.js",
-  "type": "module",
+  "main": "src/index.js",
   "exports": {
     ".": "./dist/index.js"
   },

@@ -24,7 +24,7 @@ export async function run() {
     for (const [majorVer, majorReleases] of Object.entries(phpStates)) {
         for (const [minorVer, state] of Object.entries(majorReleases)) {
             if (!semver.gte(semver.coerce(minorVer), semver.coerce(absoluteMinimumVersion))) {
-                console.error(`Skipping ${minorVer} as it is below the minimum version ${absoluteMinimumVersion}`);
+                core.info(`Skipping ${minorVer} as it is below the minimum version ${absoluteMinimumVersion}`);
                 continue;
             }
 
@@ -42,11 +42,9 @@ export async function run() {
 
     for (const [state, details] of Object.entries(data)) {
         for (const [type, versions] of Object.entries(details)) {
-            core.setOutput(`php_${state}_${type}_versions`, JSON.stringify(details));
+            core.setOutput(`php_${state}_versions`, JSON.stringify(details));
         }
     }
-
-    console.debug('Outputs', JSON.stringify(data, null, 2));
 }
 
 async function getPHPStates() {
