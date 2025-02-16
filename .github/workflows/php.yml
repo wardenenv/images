@@ -43,7 +43,50 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64, linux/arm64]
+        platform: [linux/arm64]
+        variant: [cli]
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Push Digests
+        env:
+          PRE_AUTH: 1
+          IMAGE_NAME: centos-php
+          VERSION_LIST: ${{ matrix.php_version }}
+          VARIANT_LIST: ${{ matrix.variant }}
+          PUSH_FLAG: 1
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          PLATFORMS: ${{ matrix.platform }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php/scripts/build.sh
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  php-cli-amd64:
+    name: Build PHP CLI Images
+    runs-on: ubuntu-latest
+    needs: [php-versions]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        platform: [linux/amd64]
         variant: [cli]
     steps:
       - name: Prepare
@@ -79,7 +122,7 @@ jobs:
   php-cli-push:
     name: Push PHP CLI Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-cli]
+    needs: [php-cli, php-cli-amd64]
     strategy:
       matrix:
         php_version:
@@ -116,7 +159,50 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64, linux/arm64]
+        platform: [linux/arm64]
+        variant: [cli-loaders, fpm]
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Push Images
+        env:
+          PRE_AUTH: 1
+          IMAGE_NAME: centos-php
+          VERSION_LIST: ${{ matrix.php_version }}
+          VARIANT_LIST: ${{ matrix.variant }}
+          PUSH_FLAG: 1
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          PLATFORMS: ${{ matrix.platform }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php/scripts/build.sh
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  php-loaders-and-fpm-amd64:
+    name: Build PHP CLI-Loaders and FPM Images
+    runs-on: ubuntu-latest
+    needs: [php-cli-push]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        platform: [linux/amd64]
         variant: [cli-loaders, fpm]
     steps:
       - name: Prepare
@@ -152,7 +238,7 @@ jobs:
   php-loaders-and-fpm-push:
     name: Push PHP CLI-Loaders and FPM Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-loaders-and-fpm]
+    needs: [php-loaders-and-fpm, php-loaders-and-fpm-amd64]
     strategy:
       matrix:
         php_version:
@@ -189,7 +275,50 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64, linux/arm64]
+        platform: [linux/arm64]
+        variant: [fpm-loaders]
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Push Images
+        env:
+          PRE_AUTH: 1
+          IMAGE_NAME: centos-php
+          VERSION_LIST: ${{ matrix.php_version }}
+          VARIANT_LIST: ${{ matrix.variant }}
+          PUSH_FLAG: 1
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          PLATFORMS: ${{ matrix.platform }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php/scripts/build.sh
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  php-fpm-loaders-amd64:
+    name: Build PHP FPM-Loaders Images
+    runs-on: ubuntu-latest
+    needs: [php-loaders-and-fpm-push]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        platform: [linux/amd64]
         variant: [fpm-loaders]
     steps:
       - name: Prepare
@@ -225,7 +354,7 @@ jobs:
   php-fpm-loaders-push:
     name: Push PHP FPM-Loaders Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-fpm-loaders]
+    needs: [php-fpm-loaders, php-fpm-loaders-amd64]
     strategy:
       matrix:
         php_version:
