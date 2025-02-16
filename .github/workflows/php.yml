@@ -77,7 +77,7 @@ jobs:
           retention-days: 1
 
   php-cli-amd64:
-    name: Build PHP CLI Images
+    name: Build PHP CLI Images (amd64)
     runs-on: ubuntu-latest
     needs: [php-versions]
     strategy:
@@ -122,7 +122,7 @@ jobs:
   php-cli-push:
     name: Push PHP CLI Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-cli, php-cli-amd64]
+    needs: [php-versions, php-cli, php-cli-amd64]
     strategy:
       matrix:
         php_version:
@@ -152,7 +152,7 @@ jobs:
   php-loaders-and-fpm:
     name: Build PHP CLI-Loaders and FPM Images
     runs-on: ubuntu-24.04-arm
-    needs: [php-cli-push]
+    needs: [php-versions, php-cli-push]
     strategy:
       matrix:
         php_version:
@@ -193,9 +193,9 @@ jobs:
           retention-days: 1
 
   php-loaders-and-fpm-amd64:
-    name: Build PHP CLI-Loaders and FPM Images
+    name: Build PHP CLI-Loaders and FPM Images (amd64)
     runs-on: ubuntu-latest
-    needs: [php-cli-push]
+    needs: [php-versions, php-cli-push]
     strategy:
       matrix:
         php_version:
@@ -238,7 +238,7 @@ jobs:
   php-loaders-and-fpm-push:
     name: Push PHP CLI-Loaders and FPM Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-loaders-and-fpm, php-loaders-and-fpm-amd64]
+    needs: [php-versions, php-loaders-and-fpm, php-loaders-and-fpm-amd64]
     strategy:
       matrix:
         php_version:
@@ -268,7 +268,7 @@ jobs:
   php-fpm-loaders:
     name: Build PHP FPM-Loaders Images
     runs-on: ubuntu-24.04-arm
-    needs: [php-loaders-and-fpm-push]
+    needs: [php-versions, php-loaders-and-fpm-push]
     strategy:
       matrix:
         php_version:
@@ -309,9 +309,9 @@ jobs:
           retention-days: 1
 
   php-fpm-loaders-amd64:
-    name: Build PHP FPM-Loaders Images
+    name: Build PHP FPM-Loaders Images (amd64)
     runs-on: ubuntu-latest
-    needs: [php-loaders-and-fpm-push]
+    needs: [php-versions, php-loaders-and-fpm-push]
     strategy:
       matrix:
         php_version:
@@ -354,7 +354,7 @@ jobs:
   php-fpm-loaders-push:
     name: Push PHP FPM-Loaders Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-fpm-loaders, php-fpm-loaders-amd64]
+    needs: [php-versions, php-fpm-loaders, php-fpm-loaders-amd64]
     strategy:
       matrix:
         php_version:
