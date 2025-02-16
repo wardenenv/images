@@ -93,7 +93,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
 
       # Create file placeholders for digests and tags
       digest=$(jq -r 'containerimage.digest' ${META_FILE} | cut -d ':' -f 2)
-      echo mkdir -p "${METADATA_DIR}"
+      mkdir -p "${METADATA_DIR}"
       touch "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS//\//-}.json"
       echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS#linux/}.json"
 
