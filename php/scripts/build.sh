@@ -85,10 +85,8 @@ for BUILD_VERSION in ${VERSION_LIST}; do
         --output=type=image,name="${IMAGE_NAME}",push-by-digest=true,name-canonical=true \
         "${BUILD_VARIANT}" \
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
-        # $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
 
-      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{$imageName: $tags}')
-
+      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{ $imageName: $tags | split(" ") }')
       echo "::notice title=Image Tags::${JSON}" >> $GITHUB_OUTPUT
 
       # Create file placeholders for digests and tags
