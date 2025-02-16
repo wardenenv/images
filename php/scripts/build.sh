@@ -83,9 +83,9 @@ for BUILD_VERSION in ${VERSION_LIST}; do
         --platform=${PLATFORMS} \
         --metadata-file metadata.json \
         --output=type=image,name="${IMAGE_NAME}",push-by-digest=true,name-canonical=true \
-        # $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
         "${BUILD_VARIANT}" \
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+        # $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
 
       JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{"$imageName": $tags}')
 
