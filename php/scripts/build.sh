@@ -90,7 +90,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
       echo "::notice title=Image Tags::${JSON}" >> $GITHUB_OUTPUT
 
       # Create file placeholders for digests and tags
-      digest=$(jq -r 'containerimage.digest' metadata.json | cut -d ':' -f 2)
+      digest=$(jq -r '."containerimage.digest"' metadata.json | cut -d ':' -f 2)
       mkdir -p "${METADATA_DIR}"
       echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORMS//\//-}.json"
 
