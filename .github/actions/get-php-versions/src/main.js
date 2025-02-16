@@ -41,8 +41,12 @@ export async function run() {
     }
 
     for (const [state, details] of Object.entries(data)) {
-        core.setOutput(`php_${state}_versions`, JSON.stringify(details));
+        for (const [type, versions] of Object.entries(details)) {
+            core.setOutput(`php_${state}_${type}_versions`, JSON.stringify(details));
+        }
     }
+
+    console.debug('Outputs', JSON.stringify(data, null, 2));
 }
 
 async function getPHPStates() {
