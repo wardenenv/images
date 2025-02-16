@@ -86,8 +86,13 @@ for BUILD_VERSION in ${VERSION_LIST}; do
         "${BUILD_VARIANT}" \
         $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
+      printf "\e[01;31m==> metdata for %s:%s (%s)\033[0m\n" \
+        "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
+      cat metadata.json
+      echo "\e[01;31m==> end metadata output\033[0m\n"
+
       JSON=$(jq -cn --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{ $imageName: $tags | split(" ") }')
-      echo "::notice title=Image Tags::${JSON}" >> $GITHUB_OUTPUT
+      echo "::notice title=Image Tags::${JSON}"
 
       # Create file placeholders for digests and tags
       digest=$(jq -r '."containerimage.digest"' metadata.json | cut -d ':' -f 2)
