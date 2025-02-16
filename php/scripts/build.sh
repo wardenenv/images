@@ -89,13 +89,12 @@ for BUILD_VERSION in ${VERSION_LIST}; do
 
       JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{$imageName: $tags}')
 
-      echo "::notice title=Image Tags::${JSON}"
+      echo "::notice title=Image Tags::${JSON}" >> $GITHUB_OUTPUT
 
       # Create file placeholders for digests and tags
       digest=$(jq -r 'containerimage.digest' ${META_FILE} | cut -d ':' -f 2)
       mkdir -p "${METADATA_DIR}"
-      touch "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS//\//-}.json"
-      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${PLATFORMS#linux/}.json"
+      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORMS//\//-}.json"
 
       # docker buildx build \
       #   --push \

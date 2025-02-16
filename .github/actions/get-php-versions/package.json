@@ -1,0 +1,25 @@
+{
+  "name": "get-php-versions",
+  "description": "",
+  "main": "src/main.js",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "bundle": "ncc build --source-map --minify",
+    "bundle:watch": "npm run bundle -- --watch",
+    "local-action": "npx local-action . src/main.js .env"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1"
+  },
+  "devDependencies": {
+    "@github/local-action": "^2.6.2",
+    "@vercel/ncc": "^0.38.3",
+    "semver": "^7.7.1"
+  }
+}
