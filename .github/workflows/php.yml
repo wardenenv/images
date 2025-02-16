@@ -28,7 +28,7 @@ jobs:
       eol_versions: ${{ steps.get_php_versions.outputs.php_eol_versions}}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./github/actions/get-php-versions
+      - uses: ./.github/actions/get-php-versions
         id: get_php_versions
         with:
           version-constraint: ">=7.4"
