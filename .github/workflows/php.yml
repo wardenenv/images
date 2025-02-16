@@ -36,7 +36,7 @@ jobs:
   php-cli:
     name: Build PHP CLI Images
     runs-on: ubuntu-24.04-arm
-    needs: [fetch-versions]
+    needs: [php-versions]
     strategy:
       matrix:
         php_version:
@@ -109,7 +109,7 @@ jobs:
   php-loaders-and-fpm:
     name: Build PHP CLI-Loaders and FPM Images
     runs-on: ubuntu-24.04-arm
-    needs: [fetch-versions]
+    needs: [php-cli-push]
     strategy:
       matrix:
         php_version:
@@ -182,7 +182,7 @@ jobs:
   php-fpm-loaders:
     name: Build PHP FPM-Loaders Images
     runs-on: ubuntu-24.04-arm
-    needs: [fetch-versions]
+    needs: [php-loaders-and-fpm-push]
     strategy:
       matrix:
         php_version:
@@ -225,7 +225,7 @@ jobs:
   php-fpm-loaders-push:
     name: Push PHP FPM-Loaders Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-loaders-and-fpm]
+    needs: [php-fpm-loaders]
     strategy:
       matrix:
         php_version:
