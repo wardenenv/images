@@ -161,7 +161,7 @@ jobs:
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
   php-loaders-and-fpm:
@@ -292,7 +292,7 @@ jobs:
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
   php-fpm-loaders:
@@ -423,7 +423,7 @@ jobs:
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
   # php-fpm:
