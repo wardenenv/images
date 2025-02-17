@@ -144,10 +144,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Create manifest list ${{ matrix.php_version }}
         run: |
-          tagDigests=$(jq -cs '{ tags: (map(keys) | add | unique), digests: (map(.[]) | add | unique) }' ${{ runner.temp }}/metadata/*)
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-            $(jq -cr --arg registry "${WARDEN_IMAGE_REPOSITORY}" '.digests | map($registry + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          metadata=$(jq -s '
+            reduce .[] as $item ({};
+              reduce($item | to_entries[]) as $entry (.;
+                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
+                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
+                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
+              )
+            )
+            | with_entries(.value.tags |= unique)
+            | with_entries(.value.digests |= unique)
+          ' ${{ runner.temp }}/metadata/*)
+        
+          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
+            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
+            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
+            docker buildx imagetools create \
+              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          done
 
   php-loaders-and-fpm:
     name: Build PHP CLI-Loaders and FPM Images
@@ -260,10 +275,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Create manifest list ${{ matrix.php_version }}
         run: |
-          tagDigests=$(jq -cs '{ tags: (map(keys) | add | unique), digests: (map(.[]) | add | unique) }' ${{ runner.temp }}/metadata/*)
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-            $(jq -cr --arg registry "${WARDEN_IMAGE_REPOSITORY}" '.digests | map($registry + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          metadata=$(jq -s '
+            reduce .[] as $item ({};
+              reduce($item | to_entries[]) as $entry (.;
+                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
+                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
+                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
+              )
+            )
+            | with_entries(.value.tags |= unique)
+            | with_entries(.value.digests |= unique)
+          ' ${{ runner.temp }}/metadata/*)
+        
+          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
+            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
+            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
+            docker buildx imagetools create \
+              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          done
 
   php-fpm-loaders:
     name: Build PHP FPM-Loaders Images
@@ -376,10 +406,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Create manifest list ${{ matrix.php_version }}
         run: |
-          tagDigests=$(jq -cs '{ tags: (map(keys) | add | unique), digests: (map(.[]) | add | unique) }' ${{ runner.temp }}/metadata/*)
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-            $(jq -cr --arg registry "${WARDEN_IMAGE_REPOSITORY}" '.digests | map($registry + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          metadata=$(jq -s '
+            reduce .[] as $item ({};
+              reduce($item | to_entries[]) as $entry (.;
+                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
+                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
+                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
+              )
+            )
+            | with_entries(.value.tags |= unique)
+            | with_entries(.value.digests |= unique)
+          ' ${{ runner.temp }}/metadata/*)
+        
+          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
+            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
+            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
+            docker buildx imagetools create \
+              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
+              $(jq -cr --arg image "${image}" '.digests | map($image + "@sha256:" + .) | join(" ")' <<< "$tagDigests")
+          done
 
   # php-fpm:
   #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }}

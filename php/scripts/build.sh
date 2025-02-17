@@ -89,13 +89,15 @@ for BUILD_VERSION in ${VERSION_LIST}; do
       printf "\e[01;31m==> metdata for %s:%s (%s)\033[0m\n" \
         "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
       cat metadata.json
-      echo "\e[01;31m==> end metadata output\033[0m\n"
+      echo -e "\n\e[01;31m==> end metadata output\033[0m\n"
 
-      JSON=$(jq -cn --arg imageName "${IMAGE_NAME}" --arg tags "${IMAGE_TAGS[*]}" '{ $imageName: $tags | split(" ") }')
+      tagHash=$(echo "${IMAGE_TAGS[@]}" | sha256sum | awk '{print $1}')
+      digest=$(jq -r '."containerimage.digest"' metadata.json)
+      tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
+      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg digest "${digest}" --arg hash "${tagHash}" --argjson tags "${tagsJSON}" '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}')
       echo "::notice title=Image Tags::${JSON}"
 
       # Create file placeholders for digests and tags
-      digest=$(jq -r '."containerimage.digest"' metadata.json | cut -d ':' -f 2)
       mkdir -p "${METADATA_DIR}"
       echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORMS//\//-}.json"
 
