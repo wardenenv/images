@@ -16,9 +16,11 @@ on:
 env:
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   DOCKER_IMAGE_REPOSITORY: ${{ vars.DOCKER_IMAGE_REPOSITORY || 'docker.io/wardenenv' }}
-  PHP_SOURCE_IMAGE: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}/centos-php
+  PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
+  PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
 jobs:
+  # Get PHP versions directly from PHP releases and state files
   php-versions:
     name: PHP Setup
     runs-on: ubuntu-24.04-arm
@@ -34,8 +36,7 @@ jobs:
           version-constraint: ">=7.4"
 
   php-cli:
-    name: Build PHP CLI Images
-    runs-on: ubuntu-24.04-arm
+    name: Build CLI Images
     needs: [php-versions]
     strategy:
       matrix:
@@ -45,6 +46,8 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         platform: [linux/arm64]
         variant: [cli]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
         run: |
@@ -65,50 +68,7 @@ jobs:
           VARIANT_LIST: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
-          METADATA_DIR: ${{ runner.temp }}/metadata
-        run: bash php/scripts/build.sh
-      - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/metadata/*
-          if-no-files-found: error
-          retention-days: 1
-
-  php-cli-amd64:
-    name: Build PHP CLI Images (amd64)
-    runs-on: ubuntu-latest
-    needs: [php-versions]
-    strategy:
-      matrix:
-        php_version:
-          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64]
-        variant: [cli]
-    steps:
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Digests
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
+          PLATFORM: ${{ matrix.platform }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
@@ -120,9 +80,9 @@ jobs:
           retention-days: 1
 
   php-cli-push:
-    name: Push PHP CLI Manifests
+    name: Push CLI Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-cli, php-cli-amd64]
+    needs: [php-versions, php-cli]
     strategy:
       matrix:
         php_version:
@@ -165,8 +125,7 @@ jobs:
           done
 
   php-loaders-and-fpm:
-    name: Build PHP CLI-Loaders and FPM Images
-    runs-on: ubuntu-24.04-arm
+    name: Build CLI-Loaders and FPM Images
     needs: [php-versions, php-cli-push]
     strategy:
       matrix:
@@ -176,6 +135,8 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         platform: [linux/arm64]
         variant: [cli-loaders, fpm]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
         run: |
@@ -196,50 +157,7 @@ jobs:
           VARIANT_LIST: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
-          METADATA_DIR: ${{ runner.temp }}/metadata
-        run: bash php/scripts/build.sh
-      - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/metadata/*
-          if-no-files-found: error
-          retention-days: 1
-
-  php-loaders-and-fpm-amd64:
-    name: Build PHP CLI-Loaders and FPM Images (amd64)
-    runs-on: ubuntu-latest
-    needs: [php-versions, php-cli-push]
-    strategy:
-      matrix:
-        php_version:
-          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64]
-        variant: [cli-loaders, fpm]
-    steps:
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
+          PLATFORM: ${{ matrix.platform }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
@@ -251,9 +169,9 @@ jobs:
           retention-days: 1
 
   php-loaders-and-fpm-push:
-    name: Push PHP CLI-Loaders and FPM Manifests
+    name: Push CLI-Loaders and FPM Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-loaders-and-fpm, php-loaders-and-fpm-amd64]
+    needs: [php-versions, php-loaders-and-fpm]
     strategy:
       matrix:
         php_version:
@@ -296,8 +214,7 @@ jobs:
           done
 
   php-fpm-loaders:
-    name: Build PHP FPM-Loaders Images
-    runs-on: ubuntu-24.04-arm
+    name: Build FPM-Loaders Images
     needs: [php-versions, php-loaders-and-fpm-push]
     strategy:
       matrix:
@@ -307,6 +224,8 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         platform: [linux/arm64]
         variant: [fpm-loaders]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
         run: |
@@ -327,50 +246,7 @@ jobs:
           VARIANT_LIST: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
-          METADATA_DIR: ${{ runner.temp }}/metadata
-        run: bash php/scripts/build.sh
-      - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/metadata/*
-          if-no-files-found: error
-          retention-days: 1
-
-  php-fpm-loaders-amd64:
-    name: Build PHP FPM-Loaders Images (amd64)
-    runs-on: ubuntu-latest
-    needs: [php-versions, php-loaders-and-fpm-push]
-    strategy:
-      matrix:
-        php_version:
-          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
-          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/amd64]
-        variant: [fpm-loaders]
-    steps:
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Images
-        env:
-          PRE_AUTH: 1
-          IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
-          PUSH_FLAG: 1
-          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          PLATFORMS: ${{ matrix.platform }}
+          PLATFORM: ${{ matrix.platform }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
@@ -382,9 +258,9 @@ jobs:
           retention-days: 1
 
   php-fpm-loaders-push:
-    name: Push PHP FPM-Loaders Manifests
+    name: Push FPM-Loaders Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-fpm-loaders, php-fpm-loaders-amd64]
+    needs: [php-versions, php-fpm-loaders]
     strategy:
       matrix:
         php_version:
@@ -426,44 +302,124 @@ jobs:
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
-  # php-fpm:
-  #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }}
-  #   runs-on: ubuntu-24.04-arm
-  #   needs: [active, legacy]
-  #   strategy:
-  #     matrix:
-  #       php_version: ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4"]
-  #       php_variant: ["fpm-loaders"]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/setup-buildx-action@v3
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Build & Push Images (GitHub)
-  #       env:
-  #         BUILD_GROUP: php-fpm
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Build & Push Images (Docker Hub)
-  #       env:
-  #         BUILD_GROUP: php-fpm
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
+  setup-image-builds:
+    name: Setup Image Builds
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      registries: ${{ steps.compile.outputs.registries }}
+    steps:
+      - name: Compile list
+        id: compile
+        run: |
+          REGISTRIES="[]"
+          REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
+          REGISTRIES=$(jq -c --arg registry "${DOCKER_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
+          echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
+          echo "php_source_image=${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+  php-fpm:
+    name: PHP-FPM
+    needs: [php-versions, php-fpm-loaders-push, setup-image-builds]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        platform: [linux/arm64]
+        build_group: [php-fpm]
+        variant: [_base]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build
+        env:
+          BUILD_GROUP: ${{ matrix.build_group }}
+          PRE_AUTH: 1
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ matrix.php_version }}
+          VARIANT: ${{ matrix.variant }}
+          PLATFORM: ${{ matrix.platform }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          REGISTRIES: ${{ needs.setup-image-builds.outputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ needs.setup-image-builds.outputs.php_source_image }}
+        run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  php-fpm-push:
+    name: Push PHP-FPM Manifests
+    runs-on: ubuntu-24.04-arm
+    needs: [php-versions, php-fpm]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        build_group: [php-fpm]
+        variant: [_base]
+        registry: ${{ fromJSON(needs.setup-registry-list.outputs.registries) }}
+    steps:
+      - name: Download metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-${{ matrix.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Create manifest list ${{ matrix.php_version }}
+        env:
+          IMAGE_REGISTRY: ${{ matrix.registry }}
+        run: |
+          metadata=$(jq -s '
+            reduce .[] as $item ({};
+              reduce($item | to_entries[]) as $entry (.;
+                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
+                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
+                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
+              )
+            )
+            | with_entries(.value.tags |= unique)
+            | with_entries(.value.digests |= unique)
+          ' ${{ runner.temp }}/metadata/*)
+        
+          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
+            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
+            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
+
+            docker buildx imagetools create \
+              $(jq -cr --arg registry "${IMAGE_REGISTRY}" '.tags | map("-t " + $registry + "/" + .) | join(" ")' <<< "$tagDigests") \
+              $(jq -cr --arg registry "${IMAGE_REGISTRY}" --arg image "${image}" '.digests | map($registry + "/" + $image + "@" + .) | join(" ")' <<< "$tagDigests")
+          done
 
   # magento1:
   #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)

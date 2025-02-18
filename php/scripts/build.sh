@@ -56,12 +56,14 @@ for BUILD_VERSION in ${VERSION_LIST}; do
 
     # Build the multi-arch image, but don't load it because GitHub can't load multi-arch images
     docker buildx build \
-      --platform=${PLATFORMS} \
+      --load \
+      --platform=${PLATFORM} \
       -t "${IMAGE_NAME}:build" \
       "${BUILD_VARIANT}" \
       $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+
     # Load the image appropriate for the current runner
-    docker buildx build --load -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    #docker buildx build --load -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
     # Strip the term 'cli' from tag suffix as this is the default variant
     TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
@@ -80,7 +82,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
     if [[ ${PUSH_FLAG} != 0 ]]; then
       docker buildx build \
         --push \
-        --platform=${PLATFORMS} \
+        --platform=${PLATFORM} \
         --metadata-file metadata.json \
         --output=type=image,name="${IMAGE_NAME}",push-by-digest=true,name-canonical=true \
         "${BUILD_VARIANT}" \
@@ -99,14 +101,7 @@ for BUILD_VERSION in ${VERSION_LIST}; do
 
       # Create file placeholders for digests and tags
       mkdir -p "${METADATA_DIR}"
-      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORMS//\//-}.json"
-
-      # docker buildx build \
-      #   --push \
-      #   --platform=${PLATFORMS} \
-      #   $(printf -- "-t %s " "${IMAGE_TAGS[@]}") \
-      #   "${BUILD_VARIANT}" \
-      #   $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORM//\//-}.json"
     fi
   done
 done
