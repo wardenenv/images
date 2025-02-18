@@ -44,7 +44,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/arm64]
+        platform: [linux/arm64, linux/amd64]
         variant: [cli]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
@@ -139,7 +139,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/arm64]
+        platform: [linux/arm64, linux/amd64]
         variant: [cli-loaders, fpm]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
@@ -234,7 +234,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/arm64]
+        platform: [linux/arm64, linux/amd64]
         variant: [fpm-loaders]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
@@ -333,7 +333,12 @@ jobs:
           REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
           REGISTRIES=$(jq -c --arg registry "${DOCKER_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
           echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
-          echo "php_source_image=${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+          PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+          echo "php_source_image=${PHP_SOURCE_IMAGE}" >> $GITHUB_OUTPUT
+
+          echo "::notice title=Registries::${REGISTRIES}"
+          echo "::notice title=PHP_SOURCE_IMAGE::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
 
   build-php-fpm:
     name: Build PHP-FPM
@@ -344,7 +349,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
-        platform: [linux/arm64]
+        platform: [linux/arm64, linux/amd64]
         build_group: [php-fpm]
         variant: [_base]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
