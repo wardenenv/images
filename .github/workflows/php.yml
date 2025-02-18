@@ -15,7 +15,7 @@ on:
 
 env:
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
-  DOCKER_IMAGE_REPOSITORY: ${{ vars.DOCKER_IMAGE_REPOSITORY || 'docker.io/wardenenv' }}
+  DOCKERHUB_IMAGE_REPOSITORY: docker.io/${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
@@ -35,8 +35,29 @@ jobs:
         with:
           version-constraint: ">=7.4"
 
+  # Define some values for later stages
+  setup-image-builds:
+    name: Setup Image Builds
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      registries: ${{ steps.compile.outputs.registries }}
+    steps:
+      - name: Compile list
+        id: compile
+        run: |
+          REGISTRIES="[]"
+          REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
+          REGISTRIES=$(jq -c --arg registry "${DOCKERHUB_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
+          echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
+
+          PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+          echo "php_source_image=${PHP_SOURCE_IMAGE}" >> $GITHUB_OUTPUT
+
+          echo "::notice title='Registries'::${REGISTRIES}"
+          echo "::notice title='PHP_SOURCE_IMAGE'::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+
   build-cli:
-    name: Build CLI Images
+    name: Build CLI
     needs: [php-versions]
     strategy:
       matrix:
@@ -86,7 +107,7 @@ jobs:
           retention-days: 1
 
   push-cli:
-    name: Push CLI Manifests
+    name: Push CLI
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, build-cli]
     strategy:
@@ -131,7 +152,7 @@ jobs:
           done
 
   build-cli-loaders-and-fpm:
-    name: Build CLI-Loaders and FPM Images
+    name: Build CLI-Loaders, FPM
     needs: [php-versions, push-cli]
     strategy:
       matrix:
@@ -181,7 +202,7 @@ jobs:
           retention-days: 1
 
   push-cli-loaders-and-fpm:
-    name: Push CLI-Loaders and FPM Manifests
+    name: Push CLI-Loaders, FPM
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, build-cli-loaders-and-fpm]
     strategy:
@@ -226,7 +247,7 @@ jobs:
           done
 
   build-fpm-loaders:
-    name: Build FPM-Loaders Images
+    name: Build FPM-Loaders
     needs: [php-versions, push-cli-loaders-and-fpm]
     strategy:
       matrix:
@@ -276,7 +297,7 @@ jobs:
           retention-days: 1
 
   push-fpm-loaders:
-    name: Push FPM-Loaders Manifests
+    name: Push FPM-Loaders
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, build-fpm-loaders]
     strategy:
@@ -320,29 +341,13 @@ jobs:
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
-  setup-image-builds:
-    name: Setup Image Builds
-    runs-on: ubuntu-24.04-arm
-    outputs:
-      registries: ${{ steps.compile.outputs.registries }}
-    steps:
-      - name: Compile list
-        id: compile
-        run: |
-          REGISTRIES="[]"
-          REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
-          REGISTRIES=$(jq -c --arg registry "${DOCKER_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
-          echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
-
-          PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
-          echo "php_source_image=${PHP_SOURCE_IMAGE}" >> $GITHUB_OUTPUT
-
-          echo "::notice title='Registries'::${REGISTRIES}"
-          echo "::notice title='PHP_SOURCE_IMAGE'::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+  ##
+  ## Images from here on are images potentially used in Warden environments
+  ##
 
   build-php-fpm:
-    name: Build PHP-FPM
-    needs: [php-versions, push-fpm-loaders, setup-image-builds]
+    name: PHP-FPM
+    needs: [php-versions, setup-image-builds, push-fpm-loaders]
     strategy:
       matrix:
         php_version:
@@ -374,8 +379,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build
         env:
           BUILD_GROUP: ${{ matrix.build_group }}
@@ -397,7 +402,7 @@ jobs:
           retention-days: 1
 
   push-php-fpm:
-    name: Push PHP-FPM Manifests
+    name: Push PHP-FPM
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, build-php-fpm]
     strategy:
@@ -423,8 +428,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Create manifest list ${{ matrix.php_version }}
         env:
           IMAGE_REGISTRY: ${{ matrix.registry }}
