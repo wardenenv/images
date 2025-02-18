@@ -1,6 +1,11 @@
 name: Docker Image PHP
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to build'
+        required: true
+        default: 'development'
   schedule:
     - cron: "0 6 * * *" # 6 AM Daily
   push:
@@ -36,6 +41,19 @@ jobs:
           version-constraint: ">=7.4"
 
   # Define some values for later stages
+  common-variables:
+    name: Setup Common Variables
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      environment: ${{ steps.populate_variables.outputs.environment }}
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - name: Set Variables
+        id: populate_variables
+        run: |
+          echo "environment=${ENVIRONMENT:-}" >> $GITHUB_OUTPUT
+
   setup-image-builds:
     name: Setup Image Builds
     runs-on: ubuntu-24.04-arm
@@ -58,7 +76,8 @@ jobs:
 
   build-cli:
     name: Build CLI
-    needs: [php-versions]
+    needs: [php-versions, common-variables]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -109,7 +128,8 @@ jobs:
   push-cli:
     name: Push CLI
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, build-cli]
+    needs: [php-versions, common-variables, build-cli]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -153,7 +173,8 @@ jobs:
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
-    needs: [php-versions, push-cli]
+    needs: [php-versions, common-variables, push-cli]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -204,7 +225,8 @@ jobs:
   push-cli-loaders-and-fpm:
     name: Push CLI-Loaders, FPM
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, build-cli-loaders-and-fpm]
+    needs: [php-versions, common-variables, build-cli-loaders-and-fpm]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -248,7 +270,8 @@ jobs:
 
   build-fpm-loaders:
     name: Build FPM-Loaders
-    needs: [php-versions, push-cli-loaders-and-fpm]
+    needs: [php-versions, common-variables, push-cli-loaders-and-fpm]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -299,7 +322,8 @@ jobs:
   push-fpm-loaders:
     name: Push FPM-Loaders
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, build-fpm-loaders]
+    needs: [php-versions, common-variables, build-fpm-loaders]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -347,7 +371,8 @@ jobs:
 
   build-php-fpm:
     name: PHP-FPM
-    needs: [php-versions, setup-image-builds, push-fpm-loaders]
+    needs: [php-versions, common-variables, setup-image-builds, push-fpm-loaders]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -404,7 +429,8 @@ jobs:
   push-php-fpm:
     name: Push PHP-FPM
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, build-php-fpm]
+    needs: [php-versions, common-variables, build-php-fpm]
+    environment: ${{ needs.common-variables.outputs.environment }}
     strategy:
       matrix:
         php_version:
