@@ -337,8 +337,8 @@ jobs:
           PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
           echo "php_source_image=${PHP_SOURCE_IMAGE}" >> $GITHUB_OUTPUT
 
-          echo "::notice title=Registries::${REGISTRIES}"
-          echo "::notice title=PHP_SOURCE_IMAGE::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+          echo "::notice title='Registries'::${REGISTRIES}"
+          echo "::notice title='PHP_SOURCE_IMAGE'::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
 
   build-php-fpm:
     name: Build PHP-FPM
