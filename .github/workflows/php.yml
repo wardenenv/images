@@ -35,7 +35,7 @@ jobs:
         with:
           version-constraint: ">=7.4"
 
-  php-cli:
+  build-cli:
     name: Build CLI Images
     needs: [php-versions]
     strategy:
@@ -47,6 +47,12 @@ jobs:
         platform: [linux/arm64]
         variant: [cli]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
@@ -79,10 +85,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  php-cli-push:
+  push-cli:
     name: Push CLI Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-cli]
+    needs: [php-versions, build-cli]
     strategy:
       matrix:
         php_version:
@@ -124,9 +130,9 @@ jobs:
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
-  php-loaders-and-fpm:
+  build-cli-loaders-and-fpm:
     name: Build CLI-Loaders and FPM Images
-    needs: [php-versions, php-cli-push]
+    needs: [php-versions, push-cli]
     strategy:
       matrix:
         php_version:
@@ -136,6 +142,12 @@ jobs:
         platform: [linux/arm64]
         variant: [cli-loaders, fpm]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
@@ -168,10 +180,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  php-loaders-and-fpm-push:
+  push-cli-loaders-and-fpm:
     name: Push CLI-Loaders and FPM Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-loaders-and-fpm]
+    needs: [php-versions, build-cli-loaders-and-fpm]
     strategy:
       matrix:
         php_version:
@@ -213,9 +225,9 @@ jobs:
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
 
-  php-fpm-loaders:
+  build-fpm-loaders:
     name: Build FPM-Loaders Images
-    needs: [php-versions, php-loaders-and-fpm-push]
+    needs: [php-versions, push-cli-loaders-and-fpm]
     strategy:
       matrix:
         php_version:
@@ -225,6 +237,12 @@ jobs:
         platform: [linux/arm64]
         variant: [fpm-loaders]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
@@ -257,10 +275,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  php-fpm-loaders-push:
+  push-fpm-loaders:
     name: Push FPM-Loaders Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-fpm-loaders]
+    needs: [php-versions, build-fpm-loaders]
     strategy:
       matrix:
         php_version:
@@ -317,9 +335,9 @@ jobs:
           echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
           echo "php_source_image=${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}" >> $GITHUB_OUTPUT
 
-  php-fpm:
-    name: PHP-FPM
-    needs: [php-versions, php-fpm-loaders-push, setup-image-builds]
+  build-php-fpm:
+    name: Build PHP-FPM
+    needs: [php-versions, push-fpm-loaders, setup-image-builds]
     strategy:
       matrix:
         php_version:
@@ -330,6 +348,12 @@ jobs:
         build_group: [php-fpm]
         variant: [_base]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Prepare
@@ -367,10 +391,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  php-fpm-push:
+  push-php-fpm:
     name: Push PHP-FPM Manifests
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, php-fpm]
+    needs: [php-versions, build-php-fpm]
     strategy:
       matrix:
         php_version:
