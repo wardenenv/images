@@ -11,23 +11,12 @@ readonly BASE_DIR="$(
     )"
   )" >/dev/null \
   && pwd
-)/.."
+)/../.."
 pushd ${BASE_DIR} >/dev/null
 
-function error {
-  >&2 printf "\033[31mERROR\033[0m: $@\n"
-}
-function fatal {
-  error "$@"
-  exit -1
-}
-function warning {
-  >&2 printf "\033[33mWARNING\033[0m: $@\n"
-}
 function version {
   echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
-
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
 PUSH_FLAG=${PUSH_FLAG:-0}
@@ -40,7 +29,8 @@ fi
 
 ## since fpm images no longer can be traversed, this script should require a search path vs defaulting to build all
 if [[ -z ${SEARCH_PATH} ]]; then
-  fatal "Missing search path. Please try again passing an image type as an argument."
+  echo "::error title=Search Path Undefined::Missing search path. Please try again passing an image type as an argument."
+  exit 1
 fi
 
 ## login to docker hub as needed
@@ -69,7 +59,8 @@ fi
 # export PHP_SOURCE_IMAGE ENV_SOURCE_IMAGE
 
 if [[ -z ${PHP_VERSION} ]]; then
-  fatal "Building ${SEARCH_PATH} images requires PHP_VERSION env variable be set."
+  echo "::error title=PHP Version Undefined::Building ${SEARCH_PATH} images requires PHP_VERSION env variable be set."
+  exit 2
 fi
 
 ## Build Dir should be the search path + variant (e.g. php-fpm/magento2)
