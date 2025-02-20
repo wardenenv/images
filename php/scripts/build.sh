@@ -38,71 +38,75 @@ fi
 VERSION_LIST="${VERSION_LIST:-"7.4"}"
 VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
 
-docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY:-"ghcr.io/wardenenv"}/${IMAGE_NAME:-"php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
 fi
-for BUILD_VERSION in ${VERSION_LIST}; do
   MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
-  for BUILD_VARIANT in ${VARIANT_LIST}; do
-    # Configure build args specific to this image build
-    export PHP_VERSION="${MAJOR_VERSION}"
-    BUILD_ARGS=(IMAGE_NAME PHP_VERSION)
+  # Configure build args specific to this image build
+  export PHP_VERSION="${MAJOR_VERSION}"
+  BUILD_ARGS=(IMAGE_NAME PHP_VERSION)
 
-    # Build the image passing list of tags and build args
-    printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
-      "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
+docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
-    # Build the multi-arch image, but don't load it because GitHub can't load multi-arch images
+echo "::group::building ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
+  # Build the image passing list of tags and build args
+  printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
+    "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
+
+  # Build the multi-arch image, but don't load it because GitHub can't load multi-arch images
+  docker buildx build \
+    --load \
+    --platform=${PLATFORM} \
+    -t "${IMAGE_NAME}:build" \
+    "${BUILD_VARIANT}" \
+    $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+
+echo "::endgroup::"
+
+echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
+  # Strip the term 'cli' from tag suffix as this is the default variant
+  TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
+  [[ ${TAG_SUFFIX} ]] && TAG_SUFFIX="-${TAG_SUFFIX}"
+
+  # Fetch the precise php version from the built image and tag it
+  MINOR_VERSION="$(docker run --rm -t --entrypoint php "${IMAGE_NAME}:build" -r 'echo phpversion();')"
+
+  # Generate array of tags for the image being built
+  IMAGE_TAGS=(
+    "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}"
+    "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}"
+  )
+
+echo "::endgroup::"
+
+echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX} (${PLATFORM})"
+
+  # Iterate and push image tags to remote registry
+  if [[ ${PUSH_FLAG} != 0 ]]; then
     docker buildx build \
-      --load \
+      --push \
       --platform=${PLATFORM} \
-      -t "${IMAGE_NAME}:build" \
+      --metadata-file metadata.json \
+      --output=type=image,\"name=${IMAGE_NAME}\",push-by-digest=true,name-canonical=true \
       "${BUILD_VARIANT}" \
       $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 
-    # Load the image appropriate for the current runner
-    #docker buildx build --load -t "${IMAGE_NAME}:build" "${BUILD_VARIANT}" $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
+    printf "\e[01;31m==> metdata for %s:%s (%s)\033[0m\n" \
+      "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
+    cat metadata.json
+    echo -e "\n\e[01;31m==> end metadata output\033[0m\n"
 
-    # Strip the term 'cli' from tag suffix as this is the default variant
-    TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
-    [[ ${TAG_SUFFIX} ]] && TAG_SUFFIX="-${TAG_SUFFIX}"
+    tagHash=$(echo "${IMAGE_TAGS[@]}" | sha256sum | awk '{print $1}')
+    digest=$(jq -r '."containerimage.digest"' metadata.json)
+    tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
+    JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg digest "${digest}" --arg hash "${tagHash}" --argjson tags "${tagsJSON}" '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}')
 
-    # Fetch the precise php version from the built image and tag it
-    MINOR_VERSION="$(docker run --rm -t --entrypoint php "${IMAGE_NAME}:build" -r 'echo phpversion();')"
+    echo "::notice title=Container image digest for ${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX} (${PLATFORM##*/})::${digest}"
 
-    # Generate array of tags for the image being built
-    IMAGE_TAGS=(
-      "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}"
-      "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}"
-    )
+    # Create file placeholders for digests and tags
+    mkdir -p "${METADATA_DIR}"
+    echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORM//\//-}.json"
+  fi
 
-    # Iterate and push image tags to remote registry
-    if [[ ${PUSH_FLAG} != 0 ]]; then
-      docker buildx build \
-        --push \
-        --platform=${PLATFORM} \
-        --metadata-file metadata.json \
-        --output=type=image,name="${IMAGE_NAME}",push-by-digest=true,name-canonical=true \
-        "${BUILD_VARIANT}" \
-        $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
-
-      printf "\e[01;31m==> metdata for %s:%s (%s)\033[0m\n" \
-        "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
-      cat metadata.json
-      echo -e "\n\e[01;31m==> end metadata output\033[0m\n"
-
-      tagHash=$(echo "${IMAGE_TAGS[@]}" | sha256sum | awk '{print $1}')
-      digest=$(jq -r '."containerimage.digest"' metadata.json)
-      tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
-      JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg digest "${digest}" --arg hash "${tagHash}" --argjson tags "${tagsJSON}" '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}')
-
-      echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::$(jq -cr '.["containerimage.digest"]' <<< "$JSON")"
-
-      # Create file placeholders for digests and tags
-      mkdir -p "${METADATA_DIR}"
-      echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORM//\//-}.json"
-    fi
-  done
-done
+echo "::endgroup::"

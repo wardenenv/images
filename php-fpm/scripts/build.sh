@@ -95,14 +95,16 @@ fi
 
 docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
-echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
-
+echo "::group::Environment Variables"
   echo "Platform ........... : ${PLATFORM}"
   echo "ENV Source Image ... : ${ENV_SOURCE_IMAGE}" 
   echo "PHP Source Image ... : ${PHP_SOURCE_IMAGE}" 
   echo "PHP Version ........ : ${PHP_VERSION}" 
   echo "PHP Variant ........ : ${PHP_VARIANT}" 
   echo "Image Name ......... : ${IMAGE_NAME}" 
+echo "::endgroup::"
+
+echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
 
   docker buildx build \
     --load \
@@ -130,7 +132,7 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
 
 echo "::endgroup::"
 
-echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX}"
+echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
 
   printf "\e[01;31m==> building ${IMAGE_TAG} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
 
@@ -143,7 +145,7 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_
     $PUSH_FLAG \
     --platform=${PLATFORM} \
     --metadata-file metadata.json \
-    --output=type=image,"name=$(IFS=, ; echo "${NAMES[*]}")",push-by-digest=true,name-canonical=true \
+    --output=type=image,\"name=$(IFS=, ; echo "${NAMES[*]}")\",push-by-digest=true,name-canonical=true \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
@@ -152,7 +154,7 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_
     $PUSH_FLAG \
     --platform=${PLATFORM} \
     --metadata-file metadata.json \
-    --output=type=image,"name=$(IFS=, ; echo "${NAMES[*]}")",push-by-digest=true,name-canonical=true \
+    --output=type=image,\"name=$(IFS=, ; echo "${NAMES[*]}")\",push-by-digest=true,name-canonical=true \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
