@@ -41,7 +41,7 @@ jobs:
           version-constraint: ">=7.4"
 
   # Define some values for later stages
-  common-variables:
+  define-environment:
     name: Setup Common Variables
     runs-on: ubuntu-24.04-arm
     outputs:
@@ -54,14 +54,17 @@ jobs:
         run: |
           echo "environment=${ENVIRONMENT:-}" >> $GITHUB_OUTPUT
 
-  setup-image-builds:
-    name: Setup Image Builds
+  define-variables:
+    name: Define variables for later jobs
     runs-on: ubuntu-24.04-arm
+    needs: [define-environment]
+    environment: ${{ needs.define-environment.outputs.environment }}
     outputs:
-      registries: ${{ steps.compile.outputs.registries }}
+      registries: ${{ steps.define-vars.outputs.registries }}
+      php_source_image: ${{ steps.define-vars.outputs.php_source_image }}
     steps:
-      - name: Compile list
-        id: compile
+      - name: Define registries
+        id: define-vars
         run: |
           REGISTRIES="[]"
           REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
@@ -71,13 +74,13 @@ jobs:
           PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
           echo "php_source_image=${PHP_SOURCE_IMAGE}" >> $GITHUB_OUTPUT
 
-          echo "::notice title='Registries'::${REGISTRIES}"
-          echo "::notice title='PHP_SOURCE_IMAGE'::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+          echo "::notice title=List of registries to push to::${REGISTRIES}"
+          echo "::notice title=PHP source image to use::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
 
   build-cli:
     name: Build CLI
-    needs: [php-versions, common-variables]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -128,8 +131,8 @@ jobs:
   push-cli:
     name: Push CLI
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, common-variables, build-cli]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, build-cli]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -173,8 +176,8 @@ jobs:
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
-    needs: [php-versions, common-variables, push-cli]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, push-cli]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -225,8 +228,8 @@ jobs:
   push-cli-loaders-and-fpm:
     name: Push CLI-Loaders, FPM
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, common-variables, build-cli-loaders-and-fpm]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, build-cli-loaders-and-fpm]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -270,8 +273,8 @@ jobs:
 
   build-fpm-loaders:
     name: Build FPM-Loaders
-    needs: [php-versions, common-variables, push-cli-loaders-and-fpm]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, push-cli-loaders-and-fpm]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -322,8 +325,8 @@ jobs:
   push-fpm-loaders:
     name: Push FPM-Loaders
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, common-variables, build-fpm-loaders]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, build-fpm-loaders]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -371,8 +374,8 @@ jobs:
 
   build-php-fpm:
     name: PHP-FPM
-    needs: [php-versions, common-variables, setup-image-builds, push-fpm-loaders]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, define-variables, push-fpm-loaders]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:
@@ -415,8 +418,8 @@ jobs:
           VARIANT: ${{ matrix.variant }}
           PLATFORM: ${{ matrix.platform }}
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          REGISTRIES: ${{ needs.setup-image-builds.outputs.registries }}
-          PHP_SOURCE_IMAGE: ${{ needs.setup-image-builds.outputs.php_source_image }}
+          REGISTRIES: ${{ needs.define-variables.outputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ needs.define-variables.outputs.php_source_image }}
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
@@ -429,8 +432,8 @@ jobs:
   push-php-fpm:
     name: Push PHP-FPM
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, common-variables, build-php-fpm]
-    environment: ${{ needs.common-variables.outputs.environment }}
+    needs: [php-versions, define-environment, build-php-fpm]
+    environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
         php_version:

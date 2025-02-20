@@ -1,5 +1,5 @@
 ARG PHP_SOURCE_IMAGE="ghcr.io/wardenenv/centos-php"
-ARG PHP_VERSION
+ARG PHP_VERSION="8.4"
 ARG PHP_VARIANT="fpm-loaders"
 
 FROM golang:alpine AS mhs-builder
@@ -8,18 +8,19 @@ RUN go install github.com/axllent/mailpit/sendmail@latest
 FROM ${PHP_SOURCE_IMAGE}:${PHP_VERSION}-${PHP_VARIANT}
 
 # Clear undesired settings from base fpm images
-ENV COMPOSER_ALLOW_SUPERUSER ""
-ENV COMPOSER_HOME ""
+ENV COMPOSER_ALLOW_SUPERUSER=""
+ENV COMPOSER_HOME=""
 
-ENV MAILHOG_HOST    mailhog
-ENV MAILHOG_PORT    1025
+ENV MAILHOG_HOST=mailhog
+ENV MAILHOG_PORT=1025
+
+ENV NODE_VERSION=20
 
 RUN dnf install -y which pv sudo bind-utils python3-pip bash-completion rsync socat oathtool \
         wget ack make gcc gcc-c++ automake autoconf crontabs mariadb nano vim coreutils-common \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-ENV NODE_VERSION 20
 RUN npm install -g n \
     && n install ${NODE_VERSION} \
     && rm -rf /usr/local/n/versions/node
