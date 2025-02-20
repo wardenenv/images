@@ -486,7 +486,7 @@ jobs:
             | with_entries(.value.digests |= unique)
           ' ${{ runner.temp }}/metadata/*)
 
-          echo "::group::Metadata ${matrix.php_version} ${matrix.build_group} ${matrix.variant} ${env.PLATFORM_PAIR}"
+          echo "::group::Metadata ${{ matrix.php_version }} ${{ matrix.build_group }} ${{ matrix.variant }} ${{ env.PLATFORM_PAIR }}"
           echo "$metadata" | jq .
           echo "::endgroup::"
         
