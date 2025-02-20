@@ -143,7 +143,7 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_
     $PUSH_FLAG \
     --platform=${PLATFORM} \
     --metadata-file metadata.json \
-    --output=type=image,name="$(IFS=, ; echo "${NAMES[*]}")",push-by-digest=true,name-canonical=true \
+    --output=type=image,"name=$(IFS=, ; echo "${NAMES[*]}")",push-by-digest=true,name-canonical=true \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
