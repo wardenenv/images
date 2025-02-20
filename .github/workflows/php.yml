@@ -19,6 +19,7 @@ on:
       - scripts/build.sh
 
 env:
+  IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   DOCKERHUB_IMAGE_REPOSITORY: ${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
@@ -170,7 +171,7 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
               --annotation "index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
@@ -269,7 +270,7 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
               --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
@@ -368,7 +369,7 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
               --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
@@ -439,7 +440,7 @@ jobs:
   push-php-fpm:
     name: Push PHP-FPM
     runs-on: ubuntu-24.04-arm
-    needs: [php-versions, define-environment, build-php-fpm]
+    needs: [php-versions, define-environment, define-variables, build-php-fpm]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -449,7 +450,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         build_group: [php-fpm]
         variant: [_base]
-        registry: ${{ fromJSON(needs.setup-registry-list.outputs.registries) }}
+        registry: ${{ fromJSON(needs.define-variables.outputs.registries) }}
     steps:
       - name: Download metadata
         uses: actions/download-artifact@v4
@@ -487,7 +488,7 @@ jobs:
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
 
             docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
               --annotation "index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from" \
               $(jq -cr --arg registry "${IMAGE_REGISTRY}" '.tags | map("-t " + $registry + "/" + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg registry "${IMAGE_REGISTRY}" --arg image "${image}" '.digests | map($registry + "/" + $image + "@" + .) | join(" ")' <<< "$tagDigests")
