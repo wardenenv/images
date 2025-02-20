@@ -470,6 +470,9 @@ jobs:
       - name: Create manifest list ${{ matrix.php_version }}
         env:
           IMAGE_REGISTRY: ${{ matrix.registry }}
+        ###
+        ### TODO: Figure out why the Dockerhub manifest is missing the arm64 versions of the tagged images. GHCR is fine
+        ###
         run: |
           metadata=$(jq -s '
             reduce .[] as $item ({};
@@ -482,10 +485,20 @@ jobs:
             | with_entries(.value.tags |= unique)
             | with_entries(.value.digests |= unique)
           ' ${{ runner.temp }}/metadata/*)
+
+          echo "::group::Metadata ${matrix.php_version} ${matrix.build_group} ${matrix.variant} ${env.PLATFORM_PAIR}"
+          echo "$metadata" | jq .
+          echo "::endgroup::"
         
           for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
+
+            echo docker buildx imagetools create \
+              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
+              --annotation "index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from" \
+              $(jq -cr --arg registry "${IMAGE_REGISTRY}" '.tags | map("-t " + $registry + "/" + .) | join(" ")' <<< "$tagDigests") \
+              $(jq -cr --arg registry "${IMAGE_REGISTRY}" --arg image "${image}" '.digests | map($registry + "/" + $image + "@" + .) | join(" ")' <<< "$tagDigests")
 
             docker buildx imagetools create \
               --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
