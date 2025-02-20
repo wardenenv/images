@@ -97,7 +97,8 @@ for BUILD_VERSION in ${VERSION_LIST}; do
       digest=$(jq -r '."containerimage.digest"' metadata.json)
       tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
       JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg digest "${digest}" --arg hash "${tagHash}" --argjson tags "${tagsJSON}" '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}')
-      echo "::notice title=Manifest data for ${IMAGE_NAME} (${PLATFORM##*/})::${JSON}"
+
+      echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::$(jq -cr '.["containerimage.digest"]' <<< "$JSON")"
 
       # Create file placeholders for digests and tags
       mkdir -p "${METADATA_DIR}"
