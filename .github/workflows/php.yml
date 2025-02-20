@@ -113,8 +113,8 @@ jobs:
         env:
           PRE_AUTH: 1
           IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
+          BUILD_VERSION: ${{ matrix.php_version }}
+          BUILD_VARIANT: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
@@ -210,8 +210,8 @@ jobs:
         env:
           PRE_AUTH: 1
           IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
+          BUILD_VERSION: ${{ matrix.php_version }}
+          BUILD_VARIANT: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
@@ -307,8 +307,8 @@ jobs:
         env:
           PRE_AUTH: 1
           IMAGE_NAME: centos-php
-          VERSION_LIST: ${{ matrix.php_version }}
-          VARIANT_LIST: ${{ matrix.variant }}
+          BUILD_VERSION: ${{ matrix.php_version }}
+          BUILD_VARIANT: ${{ matrix.variant }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}

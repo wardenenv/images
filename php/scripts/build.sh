@@ -33,11 +33,6 @@ if [[ $PUSH_FLAG != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   fi
 fi
 
-## iterate over and build each version/variant combination; by default building
-## latest version; build matrix will override to build each supported version
-VERSION_LIST="${VERSION_LIST:-"7.4"}"
-VARIANT_LIST="${VARIANT_LIST:-"cli cli-loaders fpm fpm-loaders"}"
-
 IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY:-"ghcr.io/wardenenv"}/${IMAGE_NAME:-"php"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
