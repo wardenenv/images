@@ -20,7 +20,7 @@ on:
 
 env:
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
-  DOCKERHUB_IMAGE_REPOSITORY: docker.io/${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
+  DOCKERHUB_IMAGE_REPOSITORY: ${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
