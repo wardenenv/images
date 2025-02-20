@@ -170,6 +170,8 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
+              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
@@ -267,6 +269,8 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
+              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
@@ -364,6 +368,8 @@ jobs:
             image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
             docker buildx imagetools create \
+              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
@@ -420,6 +426,7 @@ jobs:
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           REGISTRIES: ${{ needs.define-variables.outputs.registries }}
           PHP_SOURCE_IMAGE: ${{ needs.define-variables.outputs.php_source_image }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
@@ -480,6 +487,8 @@ jobs:
             tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
 
             docker buildx imagetools create \
+              --annotation "index:org.opencontainers.image.authors=wardenenv" \
+              --annotation "index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from" \
               $(jq -cr --arg registry "${IMAGE_REGISTRY}" '.tags | map("-t " + $registry + "/" + .) | join(" ")' <<< "$tagDigests") \
               $(jq -cr --arg registry "${IMAGE_REGISTRY}" --arg image "${image}" '.digests | map($registry + "/" + $image + "@" + .) | join(" ")' <<< "$tagDigests")
           done
