@@ -55,7 +55,7 @@ export async function run() {
     }
 
     await Util.asyncForEach(inputs.annotations, async (annotation) => {
-        args.push('--annotation', `"${annotation}"`);
+        args.push('--annotation', annotation);
     });
 
     // Add unique tags
