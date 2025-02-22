@@ -362,7 +362,7 @@ jobs:
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
-      docker_username: ${{ needs.define-variables.outputs.dockerhub_username }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
 
   # magento1:
   #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)
