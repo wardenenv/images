@@ -142,6 +142,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [cli]
     steps:
+      - uses: actions/checkout@v4
       - name: Download metadata
         uses: actions/download-artifact@v4
         with:
@@ -226,6 +227,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [cli-loaders, fpm]
     steps:
+      - uses: actions/checkout@v4
       - name: Download metadata
         uses: actions/download-artifact@v4
         with:
@@ -310,6 +312,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [fpm-loaders]
     steps:
+      - uses: actions/checkout@v4
       - name: Download metadata
         uses: actions/download-artifact@v4
         with:
@@ -407,6 +410,7 @@ jobs:
         variant: [_base]
         registry: ${{ fromJSON(needs.define-variables.outputs.registries) }}
     steps:
+      - uses: actions/checkout@v4
       - name: Download metadata
         uses: actions/download-artifact@v4
         with:
