@@ -18,6 +18,9 @@ on:
       image_authors:
         required: true
         type: string
+      warden_image_repository:
+        required: true
+        type: string
       dockerhub_username:
         required: true
         type: string
@@ -163,6 +166,7 @@ jobs:
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           REGISTRIES: ${{ inputs.registries }}
           PHP_SOURCE_IMAGE: ${{ inputs.php_source_image }}
+          ENV_SOURCE_IMAGE: ${{ inputs.warden_image_repository }}/php-fpm
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files

@@ -65,6 +65,7 @@ jobs:
       php_source_image: ${{ steps.define-vars.outputs.php_source_image }}
       image_authors: ${{ steps.define-vars.outputs.image_authors }}
       dockerhub_username: ${{ steps.define-vars.outputs.dockerhub_username }}
+      warden_image_repository: ${{ steps.define-vars.outputs.warden_image_repository }}
     steps:
       - name: Define registries
         id: define-vars
@@ -79,6 +80,7 @@ jobs:
 
           echo "image_authors=${IMAGE_AUTHORS:-}" >> $GITHUB_OUTPUT
           echo "dockerhub_username=${DOCKERHUB_USERNAME:-}" >> $GITHUB_OUTPUT
+          echo "warden_image_repository=${WARDEN_IMAGE_REPOSITORY:-}" >> $GITHUB_OUTPUT
 
           echo "::notice title=List of registries to push to::${REGISTRIES}"
           echo "::notice title=PHP source image to use::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
@@ -363,6 +365,7 @@ jobs:
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
       dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
+      warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
   # magento1:
   #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)
