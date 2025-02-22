@@ -73,8 +73,12 @@ export async function run() {
     core.info(`toolCmd.args: ${JSON.stringify(toolCmd.args)}`);
 
     let err;
-    await Exec.getExecOutput(toolCmd, { ignoreReturnCode: true })
-        .then((res) => {
+    await Exec.getExecOutput(toolCmd.command, toolCmd.args, {
+            ignoreReturnCode: true,
+            env: Object.assign({}, process.env, {
+                BUILDX_METADATA_WARNINGS: 'true'
+              })
+        }).then((res) => {
             if (res.exitCode != 0) {
                 err = Error(`buildx failed with: ${res.stderr.match(/(.*)\s*$/)?.[0]?.trim() ?? 'unknown error'}`);
             }
