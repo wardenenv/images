@@ -1,0 +1,211 @@
+
+name: Build PHP-FPM
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      php_version:
+        required: true
+        type: string
+      registries:
+        required: true
+        type: string
+      php_source_image:
+        required: true
+        type: string
+      image_authors:
+        required: true
+        type: string
+      docker_username:
+        required: true
+        type: string
+  workflow_dispatch:
+  push:
+    paths:
+      - php-fpm/**
+      - .github/workflows/php-fpm.yml
+
+jobs:
+  build-php-fpm:
+    name: PHP-FPM
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        build_group: [php-fpm]
+        variant: [_base]
+        platform: [linux/arm64, linux/amd64]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        env:
+          BUILD_GROUP: ${{ matrix.build_group }}
+          PRE_AUTH: 1
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ inputs.php_version }}
+          VARIANT: ${{ matrix.variant }}
+          PLATFORM: ${{ matrix.platform }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          REGISTRIES: ${{ inputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ inputs.php_source_image }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ inputs.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  push-php-fpm:
+    name: Push PHP-FPM
+    runs-on: ubuntu-24.04-arm
+    needs: [build-php-fpm]
+    environment: ${{inputs.environment }}
+    strategy:
+      matrix:
+        php_version: ${{ inputs.php_version }}
+        build_group: [php-fpm]
+        variant: [_base]
+        registry: ${{ inputs.registries }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-${{ matrix.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Create manifest list ${{ inputs.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ matrix.registry }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ inputs.image_authors }}
+            index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from
+
+  build-php-fpm-variants:
+    name: PHP-FPM
+    needs: [push-php-fpm]
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        php_version: ${{ inputs.php_version }}
+        platform: [linux/arm64, linux/amd64]
+        build_group: [php-fpm]
+        variant: [blackfire, debug, spx, xdebu3]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        env:
+          BUILD_GROUP: ${{ matrix.build_group }}
+          PRE_AUTH: 1
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ matrix.php_version }}
+          VARIANT: ${{ matrix.variant }}
+          PLATFORM: ${{ matrix.platform }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          REGISTRIES: ${{ needs.define-variables.outputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ needs.define-variables.outputs.php_source_image }}
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  push-php-fpm-variants:
+    name: Push PHP-FPM
+    runs-on: ubuntu-24.04-arm
+    needs: [build-php-fpm-variants]
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        php_version: ${{ inputs.php_version }}
+        build_group: [php-fpm]
+        variant: [blackfire, debug, spx, xdebu3]
+        registry: ${{ inputs.registries }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-${{ inputs.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Create manifest list ${{ inputs.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ matrix.registry }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ inputs.IMAGE_AUTHORS }}
+            index:org.opencontainers.image.description=Base PHP-FPM with ${{ matrix.variant }} image for use in Warden environments
