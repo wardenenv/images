@@ -83,7 +83,7 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${MINOR_VERSION}${
       --push \
       --platform=${PLATFORM} \
       --metadata-file metadata.json \
-      --output=type=image,\"name=${IMAGE_NAME}\",push-by-digest=true,name-canonical=true \
+      --output=type=image,\"name=${REPOSITORY}/${IMAGE_NAME}\",push-by-digest=true,name-canonical=true \
       "${BUILD_VARIANT}" \
       $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}")
 

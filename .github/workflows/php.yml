@@ -119,6 +119,7 @@ jobs:
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
+          REPOSITORY: ${{ env.WARDEN_IMAGE_REPOSITORY }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
@@ -204,6 +205,7 @@ jobs:
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
+          REPOSITORY: ${{ env.WARDEN_IMAGE_REPOSITORY }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
@@ -289,6 +291,7 @@ jobs:
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
+          REPOSITORY: ${{ env.WARDEN_IMAGE_REPOSITORY }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
