@@ -55,14 +55,16 @@ export async function run() {
     }
 
     await Util.asyncForEach(inputs.annotations, async (annotation) => {
-        args.push('--annotation', annotation);
+        args.push('--annotation', `"${annotation}"`);
     });
 
-    await Util.asyncForEach(tags, async (tag) => {
+    // Add unique tags
+    await Util.asyncForEach([...new Set(tags)], async (tag) => {
         args.push('--tag', `${inputs.repository}/${imageName}:${tag}`);
     });
 
-    await Util.asyncForEach(digests, async (digest) => {
+    // Add unique digests
+    await Util.asyncForEach([...new Set(digests)], async (digest) => {
         args.push(`${inputs.repository}/${imageName}@${digest}`);
     });
 
