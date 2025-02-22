@@ -170,12 +170,9 @@ echo "::group::Compiling and mapping metadata"
       '{ image: $image, digests: [$digest], tags: $tags }}'
   )
 
-  # Create file placeholders for digests and tags
   mkdir -p "${METADATA_DIR}"
   echo "${JSON}" > "${METADATA_DIR}/${IMAGE_NAME}-${IMAGE_TAG//\//-}${TAG_SUFFIX//\//-}-${PLATFORM//\//-}.json"
-  echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::${digest}"
 
-  echo "image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-  echo "tags=$(jq -c '[ . ]' <<< "${IMAGE_TAGS[@]}")" >> $GITHUB_OUTPUT
+  echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::${digest}"
 
 echo "::endgroup::"

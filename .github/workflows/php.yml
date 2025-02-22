@@ -153,29 +153,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create manifest list ${{ matrix.php_version }}
-        run: |
-          metadata=$(jq -s '
-            reduce .[] as $item ({};
-              reduce($item | to_entries[]) as $entry (.;
-                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
-                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
-                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
-              )
-            )
-            | with_entries(.value.tags |= unique)
-            | with_entries(.value.digests |= unique)
-          ' ${{ runner.temp }}/metadata/*)
-        
-          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
-            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
-            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
-            docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
-              --annotation "index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from" \
-              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
-          done
+      - name: Push manifest list ${{ matrix.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ env.WARDEN_IMAGE_REPOSITORY }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
+            index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
@@ -252,29 +237,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create manifest list ${{ matrix.php_version }}
-        run: |
-          metadata=$(jq -s '
-            reduce .[] as $item ({};
-              reduce($item | to_entries[]) as $entry (.;
-                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
-                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
-                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
-              )
-            )
-            | with_entries(.value.tags |= unique)
-            | with_entries(.value.digests |= unique)
-          ' ${{ runner.temp }}/metadata/*)
-        
-          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
-            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
-            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
-            docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
-              --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
-              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
-          done
+      - name: Push manifest list ${{ matrix.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ env.WARDEN_IMAGE_REPOSITORY }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
+            index:org.opencontainers.image.description=PHP image with ${{ matrix.variant }} for use in Warden image building
 
   build-fpm-loaders:
     name: Build FPM-Loaders
@@ -351,29 +321,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create manifest list ${{ matrix.php_version }}
-        run: |
-          metadata=$(jq -s '
-            reduce .[] as $item ({};
-              reduce($item | to_entries[]) as $entry (.;
-                .[$entry.key].tags = ((.[$entry.key].tags // []) + ($entry.value.tags // [])) |
-                .[$entry.key].digests = ((.[$entry.key].digests // []) + ($entry.value.digests // [])) |
-                .[$entry.key].image = (.[$entry.key].image // $entry.value.image)
-              )
-            )
-            | with_entries(.value.tags |= unique)
-            | with_entries(.value.digests |= unique)
-          ' ${{ runner.temp }}/metadata/*)
-        
-          for hash in $(jq -r '. | keys[]' <<< "$metadata"); do
-            image=$(jq -r --arg hash "$hash" '.[$hash].image' <<< "$metadata")
-            tagDigests=$(jq -r --arg hash "$hash" '.[$hash] | { tags: .tags, digests: .digests }' <<< "$metadata")
-            docker buildx imagetools create \
-              --annotation "index:org.opencontainers.image.authors=${IMAGE_AUTHORS}" \
-              --annotation "index:org.opencontainers.image.description=PHP image with ${{matrix.variant}} for use in Warden image building" \
-              $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$tagDigests") \
-              $(jq -cr --arg image "${image}" '.digests | map($image + "@" + .) | join(" ")' <<< "$tagDigests")
-          done
+      - name: Push manifest list ${{ matrix.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ env.WARDEN_IMAGE_REPOSITORY }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
+            index:org.opencontainers.image.description=PHP image with ${{ matrix.variant }} for use in Warden image building
 
   ##
   ## Images from here on are images potentially used in Warden environments

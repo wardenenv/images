@@ -92,16 +92,20 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${MINOR_VERSION}${
     cat metadata.json
     echo -e "\n\e[01;31m==> end metadata output\033[0m\n"
 
-    tagHash=$(echo "${IMAGE_TAGS[@]}" | sha256sum | awk '{print $1}')
     digest=$(jq -r '."containerimage.digest"' metadata.json)
     tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
-    JSON=$(jq -n --arg imageName "${IMAGE_NAME}" --arg digest "${digest}" --arg hash "${tagHash}" --argjson tags "${tagsJSON}" '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}')
+    JSON=$(
+      jq -n \
+        --arg image "${IMAGE_NAME}" \
+        --arg digest "${digest}" \
+        --argjson tags "${tagsJSON}" \
+        '{ image: $image, digests: [$digest], tags: $tags }}'
+    )
 
-    echo "::notice title=Container image digest for ${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX} (${PLATFORM##*/})::${digest}"
-
-    # Create file placeholders for digests and tags
     mkdir -p "${METADATA_DIR}"
     echo "${JSON}" > "${METADATA_DIR}/${BUILD_VERSION}-${BUILD_VARIANT}-${PLATFORM//\//-}.json"
+
+    echo "::notice title=Container image digest for ${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX} (${PLATFORM##*/})::${digest}"
   fi
 
 echo "::endgroup::"
