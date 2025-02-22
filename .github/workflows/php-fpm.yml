@@ -29,7 +29,7 @@ on:
 
 jobs:
   build-php-fpm:
-    name: PHP-FPM
+    name: Build PHP-FPM
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
@@ -120,12 +120,11 @@ jobs:
             index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from
 
   build-php-fpm-variants:
-    name: PHP-FPM
+    name: Build PHP-FPM Variants
     needs: [push-php-fpm]
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        php_version: ${{ inputs.php_version }}
         platform: [linux/arm64, linux/amd64]
         build_group: [php-fpm]
         variant: [blackfire, debug, spx, xdebu3]
@@ -158,7 +157,7 @@ jobs:
           BUILD_GROUP: ${{ matrix.build_group }}
           PRE_AUTH: 1
           PUSH_FLAG: 1
-          PHP_VERSION: ${{ matrix.php_version }}
+          PHP_VERSION: ${{ inputs.php_version }}
           VARIANT: ${{ matrix.variant }}
           PLATFORM: ${{ matrix.platform }}
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
@@ -169,19 +168,20 @@ jobs:
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
         with:
-          name: metadata-${{ matrix.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          name: metadata-${{ inputs.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
           if-no-files-found: error
           retention-days: 1
 
   push-php-fpm-variants:
-    name: Push PHP-FPM
+    name: Push PHP-FPM Variants
     runs-on: ubuntu-24.04-arm
     needs: [build-php-fpm-variants]
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        php_version: ${{ inputs.php_version }}
+        php_version:
+          - ${{ inputs.php_version }}
         build_group: [php-fpm]
         variant: [blackfire, debug, spx, xdebu3]
         registry: ${{ fromJSON(inputs.registries) }}
