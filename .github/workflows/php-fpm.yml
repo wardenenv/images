@@ -6,6 +6,12 @@ on:
         description: 'Environment to build'
         required: true
         default: 'development'
+  push:
+    branches:
+      - feature/image-build-improvements
+    paths:
+      - .github/workflows/php-fpm.yml
+      - .github/actions/push-manifest/**
 
 env:
   IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
