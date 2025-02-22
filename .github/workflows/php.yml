@@ -354,7 +354,7 @@ jobs:
     with:
       environment: ${{ needs.define-environment.outputs.environment }}
       php_version: ${{ matrix.php_version }}
-      registries: ${{ fromJSON(needs.define-variables.outputs.registries) }}
+      registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
       docker_username: ${{ vars.DOCKERHUB_USERNAME }}

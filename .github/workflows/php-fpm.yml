@@ -91,7 +91,7 @@ jobs:
         php_version: ${{ inputs.php_version }}
         build_group: [php-fpm]
         variant: [_base]
-        registry: ${{ inputs.registries }}
+        registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4
       - name: Download metadata
@@ -161,8 +161,8 @@ jobs:
           VARIANT: ${{ matrix.variant }}
           PLATFORM: ${{ matrix.platform }}
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-          REGISTRIES: ${{ needs.define-variables.outputs.registries }}
-          PHP_SOURCE_IMAGE: ${{ needs.define-variables.outputs.php_source_image }}
+          REGISTRIES: ${{ inputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ inputs.php_source_image }}
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files
@@ -183,7 +183,7 @@ jobs:
         php_version: ${{ inputs.php_version }}
         build_group: [php-fpm]
         variant: [blackfire, debug, spx, xdebu3]
-        registry: ${{ inputs.registries }}
+        registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4
       - name: Download metadata
