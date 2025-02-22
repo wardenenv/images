@@ -167,7 +167,7 @@ echo "::group::Compiling and mapping metadata"
       --arg image "${IMAGE_NAME}" \
       --arg digest "${digest}" \
       --argjson tags "${tagsJSON}" \
-      '{ image: $image, digests: [$digest], tags: $tags }}'
+      '{ image: $image, digests: [$digest], tags: $tags }'
   )
 
   mkdir -p "${METADATA_DIR}"

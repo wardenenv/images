@@ -99,7 +99,7 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${MINOR_VERSION}${
         --arg image "${IMAGE_NAME}" \
         --arg digest "${digest}" \
         --argjson tags "${tagsJSON}" \
-        '{ image: $image, digests: [$digest], tags: $tags }}'
+        '{ image: $image, digests: [$digest], tags: $tags }'
     )
 
     mkdir -p "${METADATA_DIR}"
