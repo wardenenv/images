@@ -126,8 +126,8 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
   fi
 
   IMAGE_TAGS=(
-    "${IMAGE_NAME}:${MAJOR_TAG}"
-    "${IMAGE_NAME}:${MINOR_TAG}"
+    ${MAJOR_TAG}
+    ${MINOR_TAG}
   )
 
 echo "::endgroup::"
