@@ -59,7 +59,7 @@ export async function run() {
     });
 
     await Util.asyncForEach(tags, async (tag) => {
-        args.push('--tag', tag);
+        args.push('--tag', `${inputs.repository}/${imageName}:${tag}`);
     });
 
     await Util.asyncForEach(digests, async (digest) => {

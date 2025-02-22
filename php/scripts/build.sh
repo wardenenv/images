@@ -69,8 +69,8 @@ echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIA
 
   # Generate array of tags for the image being built
   IMAGE_TAGS=(
-    "${IMAGE_NAME}:${MAJOR_VERSION}${TAG_SUFFIX}"
-    "${IMAGE_NAME}:${MINOR_VERSION}${TAG_SUFFIX}"
+    "${MAJOR_VERSION}${TAG_SUFFIX}"
+    "${MINOR_VERSION}${TAG_SUFFIX}"
   )
 
 echo "::endgroup::"
