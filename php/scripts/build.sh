@@ -33,7 +33,7 @@ if [[ $PUSH_FLAG != 0 && ${PRE_AUTH:-0} != 1 ]]; then
   fi
 fi
 
-IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY:-"ghcr.io/wardenenv"}/${IMAGE_NAME:-"php"}"
+IMAGE_NAME=${IMAGE_NAME:-php}
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
 fi

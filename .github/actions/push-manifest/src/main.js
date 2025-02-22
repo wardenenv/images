@@ -55,13 +55,13 @@ export async function run() {
 
     // Add any additional tags passed via input
     if (inputs.tags.length > 0) {
-        for (const tag in inputs.tags) {
+        for (const tag of inputs.tags) {
             tags.push(tag);
         };
     }
 
     if (digests.length > 0) {
-        for (const digest in digests) {
+        for (const digest of digests) {
             args.push(`${inputs.repository}/${imageName}@${digest}`);
         }
     }
