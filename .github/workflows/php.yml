@@ -21,7 +21,7 @@ on:
 env:
   IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
-  DOCKERHUB_IMAGE_REPOSITORY: ${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
+  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
@@ -71,7 +71,7 @@ jobs:
         run: |
           REGISTRIES="[]"
           REGISTRIES=$(jq -c --arg registry "${WARDEN_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
-          REGISTRIES=$(jq -c --arg registry "${DOCKERHUB_IMAGE_REPOSITORY}" '. + [$registry]' <<< $REGISTRIES)
+          REGISTRIES=$(jq -c --arg registry "${DOCKERHUB_USERNAME}" '. + [$registry]' <<< $REGISTRIES)
           echo "registries=${REGISTRIES}" >> $GITHUB_OUTPUT
 
           PHP_SOURCE_IMAGE="${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
