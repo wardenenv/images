@@ -49,22 +49,22 @@ export async function run() {
 
     // Add any additional tags passed via input
     if (inputs.tags.length > 0) {
-        for (const tag of inputs.tags) {
+        await Util.asyncForEach(inputs.tags, async (tag) => {
             tags.push(tag);
-        };
-    }
-
-    if (inputs.annotations.length > 0) {
-        inputs.annotations.map((annotation) => {
-            args.push('--annotation', annotation);
         });
     }
 
-    if (digests.length > 0) {
-        for (const digest of digests) {
-            args.push(`${inputs.repository}/${imageName}@${digest}`);
-        }
-    }
+    await Util.asyncForEach(inputs.annotations, async (annotation) => {
+        args.push('--annotation', annotation);
+    });
+
+    await Util.asyncForEach(tags, async (tag) => {
+        args.push('--tag', tag);
+    });
+
+    await Util.asyncForEach(digests, async (digest) => {
+        args.push(`${inputs.repository}/${imageName}@${digest}`);
+    });
 
     const imagetools = new ImageTools();
     const toolCmd = await imagetools.getCommand(args);
