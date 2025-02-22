@@ -40,7 +40,8 @@ fi
   MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
   # Configure build args specific to this image build
   export PHP_VERSION="${MAJOR_VERSION}"
-  BUILD_ARGS=(IMAGE_NAME PHP_VERSION)
+  BUILD_ARGS=(PHP_VERSION)
+  BUILD_ARGS+=(IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY}/${IMAGE_NAME}")
 
 docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
