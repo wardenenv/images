@@ -27,12 +27,6 @@ export async function run() {
     const digests = [];
     const tags = [];
 
-    if (inputs.annotations.length > 0) {
-        inputs.annotations.map((annotation) => {
-            args.push(`--annotation "${annotation}"`);
-        });
-    }
-
     const files = await fs.readdir(inputs.metadataPath);
     for (const file of files) {
         if (file.endsWith('.json')) {
@@ -58,6 +52,12 @@ export async function run() {
         for (const tag of inputs.tags) {
             tags.push(tag);
         };
+    }
+
+    if (inputs.annotations.length > 0) {
+        inputs.annotations.map((annotation) => {
+            args.push('--annotation', annotation);
+        });
     }
 
     if (digests.length > 0) {
