@@ -1,0 +1,11 @@
+{
+    "image": "test-image",
+    "tags": [
+        "dev",
+        "latest"
+    ],
+    "digests": [
+        "sha256:37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79",
+        "sha256:281d80efa5a0d42d13675d7a7967aa57e7a2ba3a6a6dd9ee63559462c8be0803"
+    ]
+}

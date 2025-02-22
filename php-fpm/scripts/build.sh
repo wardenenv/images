@@ -141,15 +141,6 @@ echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_
     NAMES+=("${registry}/${IMAGE_NAME}")
   done
 
-  echo docker buildx build \
-    $PUSH_FLAG \
-    --platform=${PLATFORM} \
-    --metadata-file metadata.json \
-    --output=type=image,\"name=$(IFS=, ; echo "${NAMES[*]}")\",push-by-digest=true,name-canonical=true \
-    -f ${BUILD_DIR}/Dockerfile \
-    $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
-    "${BUILD_CONTEXT}"
-
   docker buildx build \
     $PUSH_FLAG \
     --platform=${PLATFORM} \
@@ -169,21 +160,22 @@ echo "::endgroup::"
 
 echo "::group::Compiling and mapping metadata"
 
-  tagHash=$(echo "${IMAGE_TAGS[@]}" | sha256sum | awk '{print $1}')
   digest=$(jq -r '."containerimage.digest"' metadata.json)
   tagsJSON=$(printf '%s\n' "${IMAGE_TAGS[@]}" | jq -R . | jq -cs .)
   JSON=$(
     jq -n \
-      --arg imageName "${IMAGE_NAME}" \
+      --arg image "${IMAGE_NAME}" \
       --arg digest "${digest}" \
-      --arg hash "${tagHash}" \
       --argjson tags "${tagsJSON}" \
-      '{ ($hash): { image: $imageName, digests: [$digest], tags: $tags }}'
+      '{ image: $image, digests: [$digest], tags: $tags }}'
   )
 
   # Create file placeholders for digests and tags
   mkdir -p "${METADATA_DIR}"
   echo "${JSON}" > "${METADATA_DIR}/${IMAGE_NAME}-${IMAGE_TAG//\//-}${TAG_SUFFIX//\//-}-${PLATFORM//\//-}.json"
   echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::${digest}"
+
+  echo "image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+  echo "tags=$(jq -c '[ . ]' <<< "${IMAGE_TAGS[@]}")" >> $GITHUB_OUTPUT
 
 echo "::endgroup::"
