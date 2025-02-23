@@ -40,7 +40,7 @@ fi
 FULL_PHP_VERSION=""
 MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
 # Configure build args specific to this image build
-PHP_VERSION="${MAJOR_VERSION}"
+export PHP_VERSION="${MAJOR_VERSION}"
 BUILD_ARGS=(PHP_VERSION)
 BUILD_ARGS+=(IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY}/${IMAGE_NAME}")
 
