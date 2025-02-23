@@ -37,7 +37,6 @@ IMAGE_NAME=${IMAGE_NAME:-php}
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   IMAGE_NAME="${IMAGE_NAME}-indev"
 fi
-FULL_PHP_VERSION=""
 MAJOR_VERSION="$(echo "${BUILD_VERSION}" | sed -E 's/([0-9])([0-9])/\1.\2/')"
 # Configure build args specific to this image build
 export PHP_VERSION="${MAJOR_VERSION}"
