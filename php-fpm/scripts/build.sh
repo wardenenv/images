@@ -102,7 +102,7 @@ echo "::group::Environment Variables"
   echo "ENV Source Image ... : ${ENV_SOURCE_IMAGE}" 
   echo "PHP Source Image ... : ${PHP_SOURCE_IMAGE}" 
   echo "PHP Version ........ : ${PHP_VERSION}" 
-  echo "PHP Variant ........ : ${PHP_VARIANT}" 
+  echo "PHP Variant ........ : ${VARIANT}" 
   echo "Image Name ......... : ${IMAGE_NAME}" 
 echo "::endgroup::"
 
@@ -111,7 +111,7 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
   docker buildx build \
     --load \
     --platform=${PLATFORM} \
-    -t "${IMAGE_NAME}-${PHP_VARIANT}:build" \
+    -t "${IMAGE_NAME}-${VARIANT}:build" \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
