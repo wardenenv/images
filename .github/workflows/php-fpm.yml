@@ -64,12 +64,12 @@ on:
 
 jobs:
   build-php-fpm:
-    name: Build PHP-FPM
+    name: Build
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        build_group: [php-fpm]
         variant: [_base]
+        build_group: [php-fpm]
         platform: [linux/arm64, linux/amd64]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
@@ -85,7 +85,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -cr --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
+          echo "full_php_version=$(jq -cr --arg majorVers "${{ inputs.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -126,10 +126,10 @@ jobs:
     environment: ${{inputs.environment }}
     strategy:
       matrix:
+        variant: [_base]
         php_version:
             - ${{ inputs.php_version }}
         build_group: [php-fpm]
-        variant: [_base]
         registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4
@@ -158,14 +158,14 @@ jobs:
             index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from
 
   build-php-fpm-variants:
-    name: Build PHP-FPM Variants
+    name: Build Variants
     needs: [push-php-fpm]
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
+        variant: [blackfire, debug, spx, xdebug3]
         platform: [linux/arm64, linux/amd64]
         build_group: [php-fpm]
-        variant: [blackfire, debug, spx, xdebug3]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
           # Don't build arm on amd and vice-versa
@@ -180,7 +180,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -cr --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
+          echo "full_php_version=$(jq -cr --arg majorVers "${{ inputs.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -223,10 +223,10 @@ jobs:
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
+        variant: [blackfire, debug, spx, xdebug3]
         php_version:
           - ${{ inputs.php_version }}
         build_group: [php-fpm]
-        variant: [blackfire, debug, spx, xdebug3]
         registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4

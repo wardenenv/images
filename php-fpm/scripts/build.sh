@@ -162,6 +162,10 @@ echo "::group::Metadata for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX}"
 
   echo "${IMAGE_NAME}: $(jq -cr '.[containerimage.digest]' metadata.json)"
 
+  echo -e "\e[01;31m===> Metadata from build image <==\033[0m"
+  jq '.' metadata.json
+  echo -e "\e[01;31m===> <===\033[0m"
+
 echo "::endgroup::"
 
 echo "::group::Compiling and mapping metadata"
