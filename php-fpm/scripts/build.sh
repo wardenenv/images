@@ -123,11 +123,8 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
 
-  # Fetch the precise php version from the built image and tag it
-  MINOR_VERSION="$(docker run --rm -t --entrypoint php "${BUILDER_IMAGE_NAME}:build" -derror_reporting=0 -r 'echo phpversion();' | head -n1 | tr -d '[:space:]')"
-
   MAJOR_TAG="${PHP_VERSION}"
-  MINOR_TAG="${MINOR_VERSION}"
+  MINOR_TAG="${FULL_PHP_VERSION}"
   ## If the suffix is not empty, append it to the image tag
   if [[ -n "${TAG_SUFFIX}" ]]; then
     MAJOR_TAG="${MAJOR_TAG}-${TAG_SUFFIX}"

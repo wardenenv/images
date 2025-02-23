@@ -118,6 +118,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build & Push Digests
+        id: build-push-digests
         env:
           PRE_AUTH: 1
           IMAGE_NAME: centos-php
@@ -128,6 +129,7 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           REPOSITORY: ${{ env.WARDEN_IMAGE_REPOSITORY }}
           METADATA_DIR: ${{ runner.temp }}/metadata
+          PHP_VERSIONS_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
@@ -136,12 +138,21 @@ jobs:
           path: ${{ runner.temp }}/metadata/*
           if-no-files-found: error
           retention-days: 1
+      - name: Push PHP Version Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-versions-${{ matrix.php_version }}
+          path: ${{ runner.temp }}/php-versions/*
+          if-no-files-found: error
+          retention-days: 1
 
   push-cli:
     name: Push CLI
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, define-environment, build-cli]
     environment: ${{ needs.define-environment.outputs.environment }}
+    outputs:
+      php_version_map: ${{ steps.build-php-version-map.outputs.php_version_map }}
     strategy:
       matrix:
         php_version:
@@ -157,6 +168,12 @@ jobs:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
           merge-multiple: true
+      - name: Download PHP Versions artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/php-versions
+          pattern: php-versions-${{ matrix.php_version }}-*
+          merge-multiple: true
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -170,10 +187,14 @@ jobs:
           annotations: |-
             index:org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
             index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from
+      - name: Build PHP version map
+        id: build-php-version-map
+        run: |
+          echo "php_version_map=$(jq -s 'add' ${{ runner.temp }}/php-versions/*.json)" >> $GITHUB_OUTPUT
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
-    needs: [php-versions, define-environment, push-cli]
+    needs: [php-versions, define-environment, build-cli, push-cli]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -209,6 +230,7 @@ jobs:
           IMAGE_NAME: centos-php
           BUILD_VERSION: ${{ matrix.php_version }}
           BUILD_VARIANT: ${{ matrix.variant }}
+          FULL_PHP_VERSION: ${{ fromJSON(needs.push-cli.outputs.php_version_map)[matrix.php_version] }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
@@ -259,7 +281,7 @@ jobs:
 
   build-fpm-loaders:
     name: Build FPM-Loaders
-    needs: [php-versions, define-environment, push-cli-loaders-and-fpm]
+    needs: [php-versions, define-environment, push-cli, push-cli-loaders-and-fpm]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -295,6 +317,7 @@ jobs:
           IMAGE_NAME: centos-php
           BUILD_VERSION: ${{ matrix.php_version }}
           BUILD_VARIANT: ${{ matrix.variant }}
+          FULL_PHP_VERSION: ${{ fromJSON(needs.push-cli.outputs.php_version_map)[matrix.php_version] }}
           PUSH_FLAG: 1
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
           PLATFORM: ${{ matrix.platform }}
@@ -349,7 +372,7 @@ jobs:
 
   php-fpm:
     name: PHP-FPM
-    needs: [php-versions, define-environment, define-variables, push-fpm-loaders]
+    needs: [php-versions, define-environment, define-variables, push-cli, push-fpm-loaders]
     strategy:
       matrix:
         php_version:
@@ -361,6 +384,7 @@ jobs:
     with:
       environment: ${{ needs.define-environment.outputs.environment }}
       php_version: ${{ matrix.php_version }}
+      full_php_version: ${{ fromJSON(needs.push-cli.outputs.php_version_map)[matrix.php_version] }}
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
