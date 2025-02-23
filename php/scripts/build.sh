@@ -66,7 +66,9 @@ echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIA
   TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
   [[ ${TAG_SUFFIX} ]] && TAG_SUFFIX="-${TAG_SUFFIX}"
 
-  if [[ -z "${FULL_PHP_VERSION:-}" ]]; then
+  echo "Evaluating full PHP version: ${FULL_PHP_VERSION}"
+  if [[ -z "${FULL_PHP_VERSION}" ]]; then
+    echo "::notice title=Full PHP Version Empty::Full PHP version is empty (${FULL_PHP_VERSION}), running container to get full version"
     # Fetch the precise php version from the built image and tag it
     FULL_PHP_VERSION="$(docker run --rm -t --entrypoint php "${IMAGE_NAME}:build" -r 'echo phpversion();')"
 
@@ -75,7 +77,7 @@ echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIA
     mkdir -p "${PHP_VERSIONS_DIR}"
     jq -n --arg major "$MAJOR_VERSION" --arg full "$FULL_PHP_VERSION" '{ ($major): $full }' > "${PHP_VERSIONS_DIR}/${MAJOR_VERSION}-${PLATFORM//\//-}.json"
   else
-    echo "Full PHP Version: ${FULL_PHP_VERSION}"
+    echo "::notice title=Full PHP Version Provided::Full PHP Version - ${FULL_PHP_VERSION}"
   fi
 
   # Generate array of tags for the image being built
