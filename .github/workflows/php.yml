@@ -190,11 +190,11 @@ jobs:
       - name: Build PHP version map
         id: build-php-version-map
         run: |
-          echo "php_version_map=$(jq -cs 'add' ${{ runner.temp }}/php-versions/*.json)" >> $GITHUB_OUTPUT
+          echo "php_version_map=$(jq -cs 'add' ${{ runner.temp }}/php-versions/*)" >> $GITHUB_OUTPUT
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
-    needs: [php-versions, define-environment, build-cli, push-cli]
+    needs: [php-versions, define-environment, push-cli]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -218,7 +218,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< "${{ needs.push-cli.outputs.php_version_map }}")" >> $GITHUB_OUTPUT
+          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.push-cli.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -307,7 +307,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< "${{ needs.push-cli.outputs.php_version_map }}")" >> $GITHUB_OUTPUT
+          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.push-cli.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
