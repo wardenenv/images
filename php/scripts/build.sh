@@ -73,7 +73,7 @@ echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIA
     echo "full_php_version=${FULL_PHP_VERSION}" >> $GITHUB_OUTPUT
 
     mkdir -p "${PHP_VERSIONS_DIR}"
-    jq -n --arg major "$MAJOR_VERSION" --arg full "$FULL_PHP_VERSION" '{ ($major): $full }' > "${PHP_VERSIONS_DIR}/${MAJOR_VERSION}.json"
+    jq -n --arg major "$MAJOR_VERSION" --arg full "$FULL_PHP_VERSION" '{ ($major): $full }' > "${PHP_VERSIONS_DIR}/${MAJOR_VERSION}-${PLATFORM//\//-}.json"
   else
     echo "Full PHP Version: ${FULL_PHP_VERSION}"
   fi

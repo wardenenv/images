@@ -190,7 +190,7 @@ jobs:
       - name: Build PHP version map
         id: build-php-version-map
         run: |
-          echo "php_version_map=$(jq -s 'add' ${{ runner.temp }}/php-versions/*.json)" >> $GITHUB_OUTPUT
+          echo "php_version_map=$(jq -cs 'add' ${{ runner.temp }}/php-versions/*.json)" >> $GITHUB_OUTPUT
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
