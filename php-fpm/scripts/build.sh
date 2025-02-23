@@ -111,14 +111,13 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
   docker buildx build \
     --load \
     --platform=${PLATFORM} \
-    -t "${IMAGE_NAME}:build" \
+    -t "${IMAGE_NAME}-${PHP_VARIANT}:build" \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
 
   # Fetch the precise php version from the built image and tag it
-  MINOR_VERSION="$(docker run --rm -t --entrypoint php "${IMAGE_NAME}:build" -r 'echo phpversion();' | head -n1)"
-  echo $MINOR_VERSION
+  MINOR_VERSION="$(docker run --rm -t --entrypoint php "${IMAGE_NAME}:build" -derror_reporting=0 -r 'echo phpversion();' | head -n1)"
 
   MAJOR_TAG="${PHP_VERSION}"
   MINOR_TAG="${MINOR_VERSION}"
