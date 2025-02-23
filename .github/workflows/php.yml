@@ -129,7 +129,7 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           REPOSITORY: ${{ env.WARDEN_IMAGE_REPOSITORY }}
           METADATA_DIR: ${{ runner.temp }}/metadata
-          PHP_VERSIONS_DIR: ${{ runner.temp }}/metadata
+          PHP_VERSIONS_DIR: ${{ runner.temp }}/php-versions
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
@@ -143,7 +143,7 @@ jobs:
         with:
           name: php-versions-${{ matrix.php_version }}
           path: ${{ runner.temp }}/php-versions/*
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 1
 
   push-cli:
