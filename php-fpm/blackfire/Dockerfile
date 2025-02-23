@@ -1,5 +1,5 @@
-ARG ENV_SOURCE_IMAGE
-ARG PHP_VERSION
+ARG ENV_SOURCE_IMAGE="ghcr.io/wardenenv/php-fpm"
+ARG PHP_VERSION="8.4"
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
 USER root
 
@@ -15,6 +15,6 @@ RUN mkdir -p /tmp/blackfire \
     && mv /tmp/blackfire/blackfire /usr/bin/blackfire \
     && rm -rf /tmp/blackfire
 
-COPY blackfire/etc/php.d/*.ini /etc/php.d/
+COPY etc/php.d/*.ini /etc/php.d/
 
 USER www-data

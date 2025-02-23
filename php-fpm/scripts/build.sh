@@ -93,6 +93,8 @@ else
   BUILD_CONTEXT="${BUILD_DIR}"
 fi
 
+echo "Build Context ...... : ${BUILD_CONTEXT}"
+
 docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
 echo "::group::Environment Variables"

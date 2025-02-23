@@ -130,7 +130,7 @@ jobs:
       matrix:
         platform: [linux/arm64, linux/amd64]
         build_group: [php-fpm]
-        variant: [blackfire, debug, spx, xdebu3]
+        variant: [blackfire, debug, spx, xdebug3]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
           # Don't build arm on amd and vice-versa
@@ -187,7 +187,7 @@ jobs:
         php_version:
           - ${{ inputs.php_version }}
         build_group: [php-fpm]
-        variant: [blackfire, debug, spx, xdebu3]
+        variant: [blackfire, debug, spx, xdebug3]
         registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4
