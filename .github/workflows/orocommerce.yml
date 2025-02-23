@@ -1,5 +1,5 @@
 
-name: Build PHP-FPM
+name: Build orocommerce
 on:
   workflow_call:
     inputs:
@@ -59,8 +59,8 @@ on:
         default: "wardenenv"
   push:
     paths:
-      - php-fpm/**
-      - .github/workflows/php-fpm.yml
+      - php-fpm/orocommerce/**
+      - .github/workflows/orocommerce.yml
 
 jobs:
   build:
@@ -68,7 +68,7 @@ jobs:
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        variant: [_base]
+        variant: [orocommerce]
         build_group: [php-fpm]
         platform: [linux/arm64, linux/amd64]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
@@ -126,7 +126,7 @@ jobs:
     environment: ${{inputs.environment }}
     strategy:
       matrix:
-        variant: [_base]
+        variant: [orocommerce]
         build_group: [php-fpm]
         php_version:
             - ${{ inputs.php_version }}
@@ -155,7 +155,7 @@ jobs:
           metadata-path: ${{ runner.temp }}/metadata
           annotations: |-
             index:org.opencontainers.image.authors=${{ inputs.image_authors }}
-            index:org.opencontainers.image.description=Base PHP-FPM image all Warden environment images are built from
+            index:org.opencontainers.image.description=PHP image for use in OroCommerce environments
 
   build-variants:
     name: Build Variants
@@ -163,8 +163,8 @@ jobs:
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        variant: [blackfire, debug, spx, xdebug3]
-        build_group: [php-fpm]
+        variant: [blackfire, debug, xdebug3]
+        build_group: [php-fpm/orocommerce]
         platform: [linux/arm64, linux/amd64]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
         exclude:
@@ -223,8 +223,8 @@ jobs:
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        variant: [blackfire, debug, spx, xdebug3]
-        build_group: [php-fpm]
+        variant: [blackfire, debug, xdebug3]
+        build_group: [php-fpm/orocommerce]
         php_version:
           - ${{ inputs.php_version }}
         registry: ${{ fromJSON(inputs.registries) }}
@@ -252,4 +252,4 @@ jobs:
           metadata-path: ${{ runner.temp }}/metadata
           annotations: |-
             index:org.opencontainers.image.authors=${{ inputs.IMAGE_AUTHORS }}
-            index:org.opencontainers.image.description=Base PHP-FPM with ${{ matrix.variant }} image for use in Warden environments
+            index:org.opencontainers.image.description=PHP image with ${{ matrix.variant }} for OroCommerce environments

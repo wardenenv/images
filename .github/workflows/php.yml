@@ -405,119 +405,65 @@ jobs:
       dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
-  # magento1:
-  #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento1)
-  #   runs-on: ubuntu-24.04-arm
-  #   needs: php-fpm
-  #   strategy:
-  #     matrix:
-  #       php_version: ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4"]
-  #       php_variant: ["fpm-loaders"]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/setup-buildx-action@v3
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Build & Push Images
-  #       env:
-  #         BUILD_GROUP: php-fpm/magento1
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Build & Push Images (Docker Hub)
-  #       env:
-  #         BUILD_GROUP: php-fpm/magento1
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
+  magento1:
+    name: Magento 1
+    needs: [php-versions, define-environment, define-variables, map-php-versions, php-fpm]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+    uses: ./.github/workflows/magento1.yml
+    secrets: inherit
+    with:
+      environment: ${{ needs.define-environment.outputs.environment }}
+      php_version: ${{ matrix.php_version }}
+      php_version_map: ${{ needs.map-php-versions.outputs.php_version_map }}
+      registries: ${{ needs.define-variables.outputs.registries }}
+      php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
+      image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
+      warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
-  # magento2:
-  #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (magento2)
-  #   runs-on: ubuntu-24.04-arm
-  #   needs: php-fpm
-  #   strategy:
-  #     matrix:
-  #       php_version: ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4"]
-  #       php_variant: ["fpm-loaders"]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/setup-buildx-action@v3
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Build & Push Images
-  #       env:
-  #         BUILD_GROUP: php-fpm/magento2
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Build & Push Images (Docker Hub)
-  #       env:
-  #         BUILD_GROUP: php-fpm/magento2
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
+  magento2:
+    name: Magento 2
+    needs: [php-versions, define-environment, define-variables, map-php-versions, php-fpm]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+    uses: ./.github/workflows/magento2.yml
+    secrets: inherit
+    with:
+      environment: ${{ needs.define-environment.outputs.environment }}
+      php_version: ${{ matrix.php_version }}
+      php_version_map: ${{ needs.map-php-versions.outputs.php_version_map }}
+      registries: ${{ needs.define-variables.outputs.registries }}
+      php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
+      image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
+      warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
-  # orocommerce:
-  #   name: Build Warden PHP-FPM Images ${{ matrix.php_version }} (OroCommerce)
-  #   runs-on: ubuntu-24.04-arm
-  #   needs: php-fpm
-  #   strategy:
-  #     matrix:
-  #       php_version: ["8.2", "8.3", "8.4"]
-  #       php_variant: ["fpm-loaders"]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/setup-buildx-action@v3
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Build & Push Images
-  #       env:
-  #         BUILD_GROUP: php-fpm/orocommerce
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: 0 # ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Build & Push Images (Docker Hub)
-  #       env:
-  #         BUILD_GROUP: php-fpm/orocommerce
-  #         PRE_AUTH: 1
-  #         PUSH_FLAG: 1
-  #         PHP_VERSION: ${{ matrix.php_version }}
-  #         PHP_VARIANT: ${{ matrix.php_variant }}
-  #         INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
-  #       run: bash scripts/build.sh "${BUILD_GROUP}"
+  orocommerce:
+    name: OroCommerce
+    needs: [php-versions, define-environment, define-variables, map-php-versions, php-fpm]
+    strategy:
+      matrix:
+        php_version:
+          - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
+          - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+    uses: ./.github/workflows/orocommerce.yml
+    secrets: inherit
+    with:
+      environment: ${{ needs.define-environment.outputs.environment }}
+      php_version: ${{ matrix.php_version }}
+      php_version_map: ${{ needs.map-php-versions.outputs.php_version_map }}
+      registries: ${{ needs.define-variables.outputs.registries }}
+      php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
+      image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
+      warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
