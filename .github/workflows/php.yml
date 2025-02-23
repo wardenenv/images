@@ -146,13 +146,31 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  map-php-versions:
+    name: Map PHP Versions
+    runs-on: ubuntu-24.04-arm
+    needs: [build-cli]
+    outputs:
+      php_version_map: ${{ steps.build-map.outputs.php_version_map }}
+    steps:
+      - name: Download PHP Versions artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/php-versions
+          pattern: php-versions-*
+          merge-multiple: true
+      - name: Build PHP version map
+        id: build-map
+        run: |
+          VERSION_MAP=$(jq -cs 'add' ${{ runner.temp }}/php-versions/*)
+          echo "php_version_map=$VERSION_MAP" >> $GITHUB_OUTPUT
+          echo "::notice title=PHP Version Map::${VERSION_MAP}"
+
   push-cli:
     name: Push CLI
     runs-on: ubuntu-24.04-arm
     needs: [php-versions, define-environment, build-cli]
     environment: ${{ needs.define-environment.outputs.environment }}
-    outputs:
-      php_version_map: ${{ steps.build-php-version-map.outputs.php_version_map }}
     strategy:
       matrix:
         php_version:
@@ -168,12 +186,6 @@ jobs:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
           merge-multiple: true
-      - name: Download PHP Versions artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ${{ runner.temp }}/php-versions
-          pattern: php-versions-${{ matrix.php_version }}-*
-          merge-multiple: true
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -187,14 +199,10 @@ jobs:
           annotations: |-
             index:org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
             index:org.opencontainers.image.description=Base PHP image all Warden PHP images are built from
-      - name: Build PHP version map
-        id: build-php-version-map
-        run: |
-          echo "php_version_map=$(jq -cs 'add' ${{ runner.temp }}/php-versions/*)" >> $GITHUB_OUTPUT
 
   build-cli-loaders-and-fpm:
     name: Build CLI-Loaders, FPM
-    needs: [php-versions, define-environment, push-cli]
+    needs: [php-versions, define-environment, map-php-versions, push-cli]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -218,7 +226,9 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.push-cli.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
+          FULL_PHP_VERSION=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.map-php-versions.outputs.php_version_map }}')
+          echo "full_php_version=${FULL_PHP_VERSION}" >> $GITHUB_OUTPUT
+          echo "::notice title=Full PHP ${{ matrix.php_version }} Version::${FULL_PHP_VERSION}"
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -283,7 +293,7 @@ jobs:
 
   build-fpm-loaders:
     name: Build FPM-Loaders
-    needs: [php-versions, define-environment, push-cli, push-cli-loaders-and-fpm]
+    needs: [php-versions, define-environment, map-php-versions, push-cli-loaders-and-fpm]
     environment: ${{ needs.define-environment.outputs.environment }}
     strategy:
       matrix:
@@ -307,7 +317,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.push-cli.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
+          echo "full_php_version=$(jq -c --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.map-php-versions.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -376,7 +386,7 @@ jobs:
 
   php-fpm:
     name: PHP-FPM
-    needs: [php-versions, define-environment, define-variables, push-cli, push-fpm-loaders]
+    needs: [php-versions, define-environment, define-variables, map-php-versions, push-fpm-loaders]
     strategy:
       matrix:
         php_version:
@@ -388,7 +398,7 @@ jobs:
     with:
       environment: ${{ needs.define-environment.outputs.environment }}
       php_version: ${{ matrix.php_version }}
-      php_version_map: ${{ needs.push-cli.outputs.php_version_map }}
+      php_version_map: ${{ needs.map-php-versions.outputs.php_version_map }}
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
