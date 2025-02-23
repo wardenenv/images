@@ -25,6 +25,35 @@ on:
         required: true
         type: string
   workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: string
+        default: development
+      php_version:
+        required: true
+        type: string
+        default: "8.4"
+      registries:
+        required: true
+        type: string
+        default: "ghcr.io/wardenenv"
+      php_source_image:
+        required: true
+        type: string
+        default: "ghcr.io/wardenenv/centos-php"
+      image_authors:
+        required: true
+        type: string
+        default: "Warden Developers"
+      warden_image_repository:
+        required: true
+        type: string
+        default: "ghcr.io/wardenenv"
+      dockerhub_username:
+        required: true
+        type: string
+        default: "wardenenv"
   push:
     paths:
       - php-fpm/**
@@ -161,6 +190,7 @@ jobs:
           PRE_AUTH: 1
           PUSH_FLAG: 1
           PHP_VERSION: ${{ inputs.php_version }}
+          PHP_VARIANT: fpm-loaders
           VARIANT: ${{ matrix.variant }}
           PLATFORM: ${{ matrix.platform }}
           INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}

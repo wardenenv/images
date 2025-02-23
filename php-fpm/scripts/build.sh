@@ -109,7 +109,7 @@ echo "::endgroup::"
 echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
-  [[ "$VARIANT" != "base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${VARIANT}"
+  [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${VARIANT}"
 
   echo ""
   echo "Builder Image Name ... : ${BUILDER_IMAGE_NAME}"
