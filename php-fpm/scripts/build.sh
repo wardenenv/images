@@ -88,6 +88,9 @@ fi
 # Check if the current build directory has a context directory
 if [[ -d "${BUILD_DIR}/context" ]]; then
   BUILD_CONTEXT="${BUILD_DIR}/context"
+# Check if the root image type variant has a context directory
+elif [[ -d "$(echo $BUILD_DIR | cut -d/ -f1)/${VARIANT}/context" ]]; then
+  BUILD_CONTEXT="$(echo $BUILD_DIR | cut -d/ -f1)/${VARIANT}/context"
 # Use the entire build directory as the context
 else
   BUILD_CONTEXT="${BUILD_DIR}"
