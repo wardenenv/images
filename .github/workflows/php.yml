@@ -141,7 +141,7 @@ jobs:
       - name: Push PHP Version Files
         uses: actions/upload-artifact@v4
         with:
-          name: php-versions-${{ matrix.php_version }}
+          name: php-versions-${{ matrix.php_version }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/php-versions/*
           if-no-files-found: ignore
           retention-days: 1
