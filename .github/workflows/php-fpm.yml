@@ -24,6 +24,9 @@ on:
       warden_image_repository:
         required: true
         type: string
+      push2dockerhub:
+        required: true
+        type: boolean
       dockerhub_username:
         required: true
         type: string
@@ -53,6 +56,10 @@ on:
         required: true
         type: string
         default: "ghcr.io/wardenenv"
+      push2dockerhub:
+        required: true
+        type: boolean
+        default: true
       dockerhub_username:
         required: true
         type: string
@@ -94,6 +101,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
         with:
           username: ${{ inputs.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -145,6 +153,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
         with:
           username: ${{ inputs.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -189,6 +198,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
         with:
           username: ${{ inputs.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -242,6 +252,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
         with:
           username: ${{ inputs.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
