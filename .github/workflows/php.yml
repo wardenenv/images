@@ -7,9 +7,9 @@ on:
         required: true
         default: 'development'
       push2dockerhub:
-        description: Whether or not to push to DockerHub
+        description: Push images to Dockerhub?
         required: true
-        default: "1"
+        default: "true"
   schedule:
     - cron: "0 6 * * *" # 6 AM Daily
   push:
