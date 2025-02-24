@@ -58,17 +58,24 @@ if [[ -z ${PHP_VERSION} ]]; then
   exit 2
 fi
 
-## Build Dir should be the search path + variant (e.g. php-fpm/magento2)
+## Build Dir should be the search path + variant (e.g. php-fpm/magento2, php-fpm/magento2/xdebug3)
 BUILD_DIR="${SEARCH_PATH}/${VARIANT}"
 
 ## Image name should only be the top-level directory (e.g. php-fpm)
 IMAGE_NAME=$(echo "${BUILD_DIR}" | cut -d/ -f1)
 [[ "${INDEV_FLAG:-1}" != "0" ]] && IMAGE_NAME="${IMAGE_NAME}-indev"
 
-## Tag suffix should be the variant (e.g. magento2, magento2-xdebug3)
-TAG_SUFFIX=$(echo ${VARIANT} | tr / - | sed 's/^-//')
-## If the tag suffix is "_base", remove it
-[[ "${TAG_SUFFIX}" == "_base" ]] && TAG_SUFFIX=""
+## Tag suffix should be the variant prefixed by any trailing directory of build dir (e.g. magento2, magento2-xdebug3)
+
+## Start with the last part(s) of the build directory
+TAG_SUFFIX=$(echo "${BUILD_DIR}" | cut -d/ -f2-)
+## If it ends with "/_base" or is just "_base" then remove it
+[[ "${TAG_SUFFIX}" =~ /_base$ ]] && TAG_SUFFIX="${TAG_SUFFIX%%/_base}"
+[[ "${TAG_SUFFIX}" =~ ^_base$ ]] && TAG_SUFFIX="${TAG_SUFFIX%%_base}"
+## Replace dashes with hyphens
+TAG_SUFFIX="${TAG_SUFFIX//\//-}"
+## if the tag isn't empty, prefix it with a dash
+[[ -n "${TAG_SUFFIX}" ]] && TAG_SUFFIX="-${TAG_SUFFIX}"
 
 BUILD_ARGS=(PHP_SOURCE_IMAGE ENV_SOURCE_IMAGE PHP_VERSION)
 if [[ ${PHP_VARIANT:-} ]]; then
@@ -96,27 +103,32 @@ else
   BUILD_CONTEXT="${BUILD_DIR}"
 fi
 
-echo "Build Context ...... : ${BUILD_CONTEXT}"
-
 docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
 echo "::group::Environment Variables"
-  echo "Platform ........... : ${PLATFORM}"
-  echo "ENV Source Image ... : ${ENV_SOURCE_IMAGE}" 
-  echo "PHP Source Image ... : ${PHP_SOURCE_IMAGE}" 
-  echo "PHP Version ........ : ${PHP_VERSION}" 
-  echo "PHP Variant ........ : ${VARIANT}" 
-  echo "Image Name ......... : ${IMAGE_NAME}" 
+  echo "   Build Directory .... : ${BUILD_DIR}"
+  echo "   Build Context ...... : ${BUILD_CONTEXT}"
+  echo "   Platform ........... : ${PLATFORM}"
+  echo "   ENV Source Image ... : ${ENV_SOURCE_IMAGE}" 
+  echo "   PHP Source Image ... : ${PHP_SOURCE_IMAGE}" 
+  echo "   PHP Version ........ : ${PHP_VERSION}" 
+  echo "   PHP Variant ........ : ${VARIANT}" 
+  echo "   Image Name ......... : ${IMAGE_NAME}" 
 echo "::endgroup::"
 
-echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
+echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
   [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${VARIANT}"
 
   echo ""
-  echo "Builder Image Name ... : ${BUILDER_IMAGE_NAME}"
+  echo "    Builder Image Name ... : ${BUILDER_IMAGE_NAME}"
+  echo "    Build Context ........ : ${BUILD_CONTEXT}"
+  echo "    Image Name ........... : ${IMAGE_NAME}"
+  echo "    Compiled Image Tag ... : ${PHP_VERSION}${TAG_SUFFIX}"
   echo ""
+
+  exit 255
 
   docker buildx build \
     --load \
@@ -130,8 +142,8 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG} (${TAG_SUFFIX})"
   MINOR_TAG="${FULL_PHP_VERSION}"
   ## If the suffix is not empty, append it to the image tag
   if [[ -n "${TAG_SUFFIX}" ]]; then
-    MAJOR_TAG="${MAJOR_TAG}-${TAG_SUFFIX}"
-    MINOR_TAG="${MINOR_TAG}-${TAG_SUFFIX}"
+    MAJOR_TAG="${MAJOR_TAG}${TAG_SUFFIX}"
+    MINOR_TAG="${MINOR_TAG}${TAG_SUFFIX}"
   fi
 
   IMAGE_TAGS=(
@@ -186,6 +198,6 @@ echo "::group::Compiling and mapping metadata"
   mkdir -p "${METADATA_DIR}"
   echo "${JSON}" > "${METADATA_DIR}/${IMAGE_NAME}-${IMAGE_TAG//\//-}${TAG_SUFFIX//\//-}-${PLATFORM//\//-}.json"
 
-  echo "::notice title=Container image digest for ${IMAGE_NAME} (${PLATFORM##*/})::${digest}"
+  echo "::notice title=Container image digest for ${IMAGE_NAME}${TAG_SUFFIX} (${PLATFORM##*/})::${digest}"
 
 echo "::endgroup::"
