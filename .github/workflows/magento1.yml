@@ -180,6 +180,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "sanitizedBuildGroup=$(echo "${{ matrix.build_group}}" | tr / _)" >> $GITHUB_ENV
           echo "full_php_version=$(jq -cr --arg majorVers "${{ inputs.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -211,7 +212,7 @@ jobs:
       - name: Push Metadata Files
         uses: actions/upload-artifact@v4
         with:
-          name: metadata-${{ inputs.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          name: metadata-${{ inputs.php_version }}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
           if-no-files-found: error
           retention-days: 1
@@ -230,11 +231,15 @@ jobs:
         registry: ${{ fromJSON(inputs.registries) }}
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare
+        id: prepare
+        run: |
+          echo "sanitizedBuildGroup=$(echo "${{ matrix.build_group}}" | tr / _)" >> $GITHUB_ENV
       - name: Download metadata
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/metadata
-          pattern: metadata-${{ inputs.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
+          pattern: metadata-${{ inputs.php_version}}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-*
           merge-multiple: true
       - uses: docker/login-action@v3
         with:
