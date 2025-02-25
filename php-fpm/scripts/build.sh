@@ -128,8 +128,6 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
   echo "    Compiled Image Tag ... : ${PHP_VERSION}${TAG_SUFFIX}"
   echo ""
 
-  exit 255
-
   docker buildx build \
     --load \
     --platform=${PLATFORM} \
