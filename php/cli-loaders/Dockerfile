@@ -25,7 +25,6 @@ RUN PHP_VERSION=$(php -v | head -n1 | cut -d' ' -f2 | cut -d. -f1-2) \
 # Install and enable IonCube loader
 ## IonCube doesn't support PHP 8.0: https://blog.ioncube.com/2022/08/12/ioncube-php-8-1-support-faq-were-almost-ready/
 RUN PHP_VERSION=$(php -v | head -n1 | cut -d' ' -f2 | cut -d. -f1-2) \
-    && if [ "${PHP_VERSION}" = "8.0" ]; then exit 0;\
     && if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ICARCH=x86-64; \
     elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ICARCH=aarch64; \
     else ICARCH=x86-64; fi \
@@ -41,4 +40,4 @@ RUN PHP_VERSION=$(php -v | head -n1 | cut -d' ' -f2 | cut -d. -f1-2) \
         >&2 printf "\033[33mWARNING\033[0m: IonCube loaders for PHP_VERSION %s could not be found at %s\n" \
             "${PHP_VERSION}" "${IONCUBE_LOADER_PATH}"; \
     fi \
-    && rm -rf /tmp/ioncube
+    && rm -rf /tmp/ioncube; \
