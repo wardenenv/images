@@ -1,10 +1,10 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Exists"
+  - name: "PHP Runs"
     command: "which"
     args: ["php-fpm"]
-    expectedOutput: ["/usr/bin/php"]
+    expectedOutput: ["/usr/sbin/php"]
   - name: "PHP Version Check"
     command: "php-fpm"
     args: ["--version"]
@@ -21,7 +21,7 @@ commandTests:
       - "(?m)^\\s+the ionCube PHP Loader"
       - "(?m)SourceGuardian"
   - name: "PHP Info Check"
-    command: "php"
+    command: "php-fpm"
     args: ["-i"]
     excludedOutput:
       - "/etc/php\\.d/01-ioncube-loader.ini"
