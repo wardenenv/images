@@ -64,10 +64,6 @@ on:
         required: true
         type: string
         default: "wardenenv"
-  push:
-    paths:
-      - php-fpm/magento1/**
-      - .github/workflows/magento1.yml
 
 jobs:
   build:

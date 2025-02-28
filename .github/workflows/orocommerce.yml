@@ -64,10 +64,6 @@ on:
         required: true
         type: string
         default: "wardenenv"
-  push:
-    paths:
-      - php-fpm/orocommerce/**
-      - .github/workflows/orocommerce.yml
 
 jobs:
   build:

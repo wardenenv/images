@@ -64,10 +64,6 @@ on:
         required: true
         type: string
         default: "wardenenv"
-  push:
-    paths:
-      - php-fpm/**
-      - .github/workflows/php-fpm.yml
 
 jobs:
   build:
