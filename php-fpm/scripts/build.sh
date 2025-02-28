@@ -206,24 +206,29 @@ echo "::group::Running container structure test"
   [[ "${TEST_VARIANT}" != "_base" ]] && TEST_NAME="${TEST_NAME}-${TEST_VARIANT//\//-}"
 
   TESTS_DIR="${BASE_DIR}/.github/container-structure-tests"
-  CST_CONFIGS=("${TESTS_DIR}/${TEST_NAME}.yml")
+  if [[ -e "${TESTS_DIR}/${TEST_NAME}.yml" ]]; then
+    CST_CONFIGS=("${TESTS_DIR}/${TEST_NAME}.yml")
 
-  if [[ -d "${TESTS_DIR}/${TEST_NAME}" ]]; then
-    for FILE in $(ls -r "${TESTS_DIR}/${TEST_NAME}"); do
-      APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
+    if [[ -d "${TESTS_DIR}/${TEST_NAME}" ]]; then
+      for FILE in $(ls -r "${TESTS_DIR}/${TEST_NAME}"); do
+        APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
 
-      if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
-        CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}/${FILE}")
-        break
-      fi
-    done
+        if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
+          CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}/${FILE}")
+          break
+        fi
+      done
+    fi
+
+    ${BASE_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
+    if [[ $? -ne 0 ]]; then
+      echo "::error title=Container Structure Test::Container Structure Test failed"
+      exit 2
+    fi
+  else
+    echo -e "\033[01;31m==> No container structure test config found for ${TEST_NAME}\033[0m"
   fi
 
-  ${BASE_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
-  if [[ $? -ne 0 ]]; then
-    echo "::error title=Container Structure Test::Container Structure Test failed"
-    exit 2
-  fi
 echo "::endgroup::"
 
 echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
