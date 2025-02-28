@@ -18,8 +18,8 @@ commandTests:
     args: ["-i"]
     expectedOutput:
       - "(?m)^Support Xdebug on"
-      - "(?m)^xdebug.idekey => PHPSTORM => PHPSTORM"
-      - "(?m)^xdebug.remote_enable => (setting renamed in Xdebug 3) => (setting renamed in Xdebug 3)"
+      - "(?m)^xdebug\\.idekey => PHPSTORM => PHPSTORM"
+      - "(?m)^xdebug\\.remote_enable => (setting renamed in Xdebug 3) => (setting renamed in Xdebug 3)"
 
 fileExistenceTests:
   - name: "PHP FPM Additional Configs"

@@ -12,8 +12,8 @@ commandTests:
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
-      - "(?m)^spx.debug => 1 => 1"
-      - "(?m)^spx.http_key => warden => warden"
+      - "(?m)^spx\\.debug => 1 => 1"
+      - "(?m)^spx\\.http_key => warden => warden"
 
 fileExistenceTests:
   - name: "SPX Configs"

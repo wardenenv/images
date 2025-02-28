@@ -24,12 +24,12 @@ commandTests:
     command: "php"
     args: ["-i"]
     excludedOutput:
-      - ".*/etc/php\\.d/01-ioncube-loader.ini.*"
-      - ".*/etc/php\\.d/15-sourceguardian.ini.*"
-      - "(?m)^For Loader updates visit www.ioncube.com/loaders.php"
-      - "(?m)^-ioncube.loader.encoded_paths => no value => no value"
+      - "/etc/php\\.d/01-ioncube-loader.ini"
+      - "/etc/php\\.d/15-sourceguardian.ini"
+      - "(?m)^For Loader updates visit www\\.ioncube\\.com/loaders\\.php"
+      - "(?m)^ioncube\\.loader\\.encoded_paths => no value => no value"
       - "(?m)^SourceGuardian Loader Support => enabled"
-      - "(?m)^sourceguardian.enable_debug => 0 => 0"
+      - "(?m)^sourceguardian\\.enable_debug => 0 => 0"
 
 fileExistenceTests:
   - name: "PHP FPM"

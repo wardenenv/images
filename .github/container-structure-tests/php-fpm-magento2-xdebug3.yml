@@ -18,7 +18,7 @@ commandTests:
     args: ["-i"]
     expectedOutput:
       - "(?m)^Support Xdebug on"
-      - "(?m)^xdebug.idekey => PHPSTORM => PHPSTORM"
+      - "(?m)^xdebug\\.idekey => PHPSTORM => PHPSTORM"
 
 fileExistenceTests:
   - name: "PHP FPM Additional Configs"

@@ -121,7 +121,7 @@ echo "::group::Running container structure test"
       done
     fi
 
-    ${ROOT_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
+    ${ROOT_DIR}/container-structure-test test --quiet --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
     if [[ $? -ne 0 ]]; then
       echo "::error title=Container Structure Test::Container Structure Test failed"
       exit 2

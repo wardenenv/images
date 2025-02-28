@@ -13,8 +13,8 @@ commandTests:
     args: ["-i"]
     expectedOutput:
       - "(?m)^\\s+ with blackfire"
-      - "(?m)^blackfire.agent_socket => tcp://blackfire-agent:8707 => tcp://blackfire-agent:8707"
-      - "(?m)^blackfire.apm_enabled => 1 => 1"
+      - "(?m)^blackfire\\.agent_socket => tcp://blackfire-agent:8707 => tcp://blackfire-agent:8707"
+      - "(?m)^blackfire\\.apm_enabled => 1 => 1"
 
 fileExistenceTests:
   - name: "PHP FPM Additional Configs"

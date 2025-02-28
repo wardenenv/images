@@ -20,7 +20,7 @@ commandTests:
     expectedOutput:
       - "(?m)^realpath_cache_size => 4096K => 4096K"
       - "(?m)^memory_limit => 1G => 1G"
-      - "(?m)^opcache.save_comments => On => On"
+      - "(?m)^opcache\\.save_comments => On => On"
 
 fileExistenceTests:
   - name: "OroCommerce Init File"
