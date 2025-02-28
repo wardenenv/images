@@ -150,7 +150,7 @@ fi
 echo "::group::Downloading Container Structure Test"
   curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
   mv container-structure-test-${PLATFORM//\//-} ${BASE_DIR}/container-structure-test
-  chmod +x container-structure-test
+  chmod +x ${BASE_DIR}/container-structure-test
 echo "::endgroup::"
 
 echo "::group::Environment Variables"

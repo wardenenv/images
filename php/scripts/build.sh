@@ -83,7 +83,7 @@ BUILD_ARGS+=(IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY}/${IMAGE_NAME}")
 echo "::group::Downloading Container Structure Test"
   curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
   mv container-structure-test-${PLATFORM//\//-} ${ROOT_DIR}/container-structure-test
-  chmod +x container-structure-test
+  chmod +x ${ROOT_DIR}/container-structure-test
 echo "::endgroup::"
 
 echo "::group::Building ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
