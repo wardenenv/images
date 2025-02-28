@@ -1,0 +1,29 @@
+commandTests:
+  - name: "PHP Exists"
+    command: "which"
+    args: ["php"]
+    expectedOutput: ["/usr/bin/php"]
+  - name: "PHP Module Check"
+    command: "php"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^the ionCube PHP Loader"
+      - "(?m)SourceGuardian"
+  - name: "PHP Config Check"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - ".*/etc/php\\.d/01-ioncube-loader.ini.*"
+      - ".*/etc/php\\.d/15-sourceguardian.ini.*"
+      - "(?m)^For Loader updates visit www.ioncube.com/loaders.php"
+      - "(?m)^-ioncube.loader.encoded_paths => no value => no value"
+      - "(?m)^SourceGuardian Loader Support => enabled"
+      - "(?m)^sourceguardian.enable_debug => 0 => 0"
+
+fileExistenceTests:
+  - name: "IonCube Config"
+    path: "/etc/php.d/01-ioncube-loader.ini"
+    shouldExist: true
+  - name: "SourceGuardian Config"
+    path: "/etc/php.d/15-sourceguardian.ini"
+    shouldExist: true

@@ -1,0 +1,72 @@
+commandTests:
+  - name: "PHP Exists"
+    command: "which"
+    args: ["php"]
+    expectedOutput: ["/usr/bin/php"]
+  - name: "PHP Check"
+    command: "php"
+    args: ["--version"]
+    expectedOutput: 
+      # (?m) will allow ^ and $ to match individual lines not start and end of entire string
+      - "(?m)^Zend Engine"
+      - "(?m)^[\\s]+with Zend OPcache"
+  - name: "PHP Information Check"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^Debug Build => no$"
+      - "(?m)^memory_limit => -1 => -1$"
+  - name: "Composer 1 Check"
+    command: "/usr/bin/composer1"
+    args: ["--version"]
+    expectedOutput:
+      - "(?m)^Composer version 1\\.[0-9]+\\.[0-9]+ "
+  - name: "Composer 2 Check"
+    command: "/usr/bin/composer2"
+    args: ["--version"]
+    expectedOutput:
+      - "(?m)^Composer version 2\\.[0-9]+\\.[0-9]+ "
+  - name: "Composer 2 LTS Check"
+    command: "/usr/bin/composer2lts"
+    args: ["--version"]
+    expectedOutput:
+      - "(?m)^Composer version 2\\.2\\.[0-9]+ "
+
+fileExistenceTests:
+  - name: "PHP Binary"
+    path: "/usr/bin/php"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+    uid: 0
+    gid: 0
+  - name: "Composer 1 Binary"
+    path: "/usr/bin/composer1"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+    uid: 0
+    gid: 0
+  - name: "Composer 2 Binary"
+    path: "/usr/bin/composer2"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+    uid: 0
+    gid: 0
+  - name: "Composer 2 LTS Binary"
+    path: "/usr/bin/composer2lts"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+    uid: 0
+    gid: 0
+  - name: "IonCube Config"
+    path: "/etc/php.d/01-ioncube-loader.ini"
+    shouldExist: false
+  - name: "SourceGuardian Config"
+    path: "/etc/php.d/15-sourceguardian.ini"
+    shouldExist: false
+
+metadataTest:
+  envVars:
+    - key: COMPOSER_ALLOW_SUPERUSER
+      value: 1
+    - key: COMPOSER_HOME
+      value: /tmp/composer

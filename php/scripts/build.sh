@@ -6,17 +6,54 @@ function error {
   >&2 printf "\033[31mERROR\033[0m: %s\n" "$@"
 }
 
+function compareVersions() {
+  [[ $1 == $2 ]] && return 0
+
+  local IFS=.
+  local i ver1=($1) ver2=($2)
+  # fill empty fields in ver1 with zeros
+  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do ver1[i]=0; done
+
+  for ((i=0; i<${#ver1[@]}; i++)); do
+    if ((10#${ver1[i]:=0} > 10#${ver2[i]:=0})); then
+      return 1
+    fi
+    if ((10#${ver1[i]:=0} < 10#${ver2[i]:=0})); then
+      return 2
+    fi
+  done
+  return 0
+}
+
+function versionCompare() {
+  compareVersions $1 $2
+  local result=$?
+
+  case "${3:->}" in
+    "<")
+      [[ $result == 2 ]] && return 0
+    ;;
+    "<=")
+      [[ $result == 0 || $result == 2 ]] && return 0
+    ;;
+    "=")
+      [[ $result == 0 ]] && return 0
+    ;;
+    ">=")
+      [[ $result == 0 || $result == 1 ]] && return 0
+    ;;
+    ">")
+      [[ $result == 1 ]] && return 0
+    ;;
+  esac
+  return 1
+}
+
 ## find directory above where this script is located following symlinks if neccessary
-readonly BASE_DIR="$(
-  cd "$(
-    dirname "$(
-      (readlink "${BASH_SOURCE[0]}" || echo "${BASH_SOURCE[0]}") \
-        | sed -e "s#^../#$(dirname "$(dirname "${BASH_SOURCE[0]}")")/#"
-    )"
-  )/.." >/dev/null \
-  && pwd
-)"
+readonly BASE_DIR="$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")"
 pushd "${BASE_DIR}" >/dev/null
+
+readonly ROOT_DIR="$(dirname "${BASE_DIR}")"
 
 ## if --push is passed as first argument to script, this will login to docker hub and push images
 PUSH_FLAG=${PUSH_FLAG:=0}
@@ -43,9 +80,16 @@ export PHP_VERSION="${MAJOR_VERSION}"
 BUILD_ARGS=(PHP_VERSION)
 BUILD_ARGS+=(IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY}/${IMAGE_NAME}")
 
-docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
+echo "::group::Downloading Container Structure Test"
+  curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
+  mv container-structure-test-${PLATFORM//\//-} container-structure-test
+  chmod +x container-structure-test
+echo "::endgroup::"
 
-echo "::group::building ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
+echo "::group::Building ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
+
+  docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
+
   # Build the image passing list of tags and build args
   printf "\e[01;31m==> building %s:%s (%s)\033[0m\n" \
     "${IMAGE_NAME}" "${BUILD_VERSION}" "${BUILD_VARIANT}"
@@ -60,7 +104,30 @@ echo "::group::building ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
 
 echo "::endgroup::"
 
+echo "::group::Running container structure test"
+  TESTS_DIR="${ROOT_DIR}/.github/container-structure-tests"
+  CST_CONFIGS=("${TESTS_DIR}/${BUILD_VARIANT}.yml")
+
+  if [[ -d "${TESTS_DIR}/${BUILD_VARIANT}" ]]; then
+    for FILE in $(ls -r "${TESTS_DIR}/${BUILD_VARIANT}"); do
+      APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
+
+      if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
+        CST_CONFIGS+=("${TESTS_DIR}/${BUILD_VARIANT}/${FILE}")
+        break
+      fi
+    done
+  fi
+
+  ${ROOT_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
+  if [[ $? -ne 0 ]]; then
+    echo "::error title=Container Structure Test::Container Structure Test failed"
+    exit 2
+  fi
+echo "::endgroup::"
+
 echo "::group::Generating tags for ${IMAGE_NAME}:${BUILD_VERSION} (${BUILD_VARIANT})"
+
   # Strip the term 'cli' from tag suffix as this is the default variant
   TAG_SUFFIX="$(echo "${BUILD_VARIANT}" | sed -E 's/^(cli$|cli-)//')"
   [[ ${TAG_SUFFIX} ]] && TAG_SUFFIX="-${TAG_SUFFIX}"

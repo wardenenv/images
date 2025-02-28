@@ -11,6 +11,50 @@ function version {
   echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
 
+function compareVersions() {
+  [[ $1 == $2 ]] && return 0
+
+  local IFS=.
+  local i ver1=($1) ver2=($2)
+  # fill empty fields in ver1 with zeros
+  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do ver1[i]=0; done
+
+  for ((i=0; i<${#ver1[@]}; i++)); do
+    if ((10#${ver1[i]:=0} > 10#${ver2[i]:=0})); then
+      return 1
+    fi
+    if ((10#${ver1[i]:=0} < 10#${ver2[i]:=0})); then
+      return 2
+    fi
+  done
+  return 0
+}
+
+function versionCompare() {
+  compareVersions $1 $2
+  local result=$?
+
+  case "${3:->}" in
+    "<")
+      [[ $result == 2 ]] && return 0
+    ;;
+    "<=")
+      [[ $result == 0 || $result == 2 ]] && return 0
+    ;;
+    "=")
+      [[ $result == 0 ]] && return 0
+    ;;
+    ">=")
+      [[ $result == 0 || $result == 1 ]] && return 0
+    ;;
+    ">")
+      [[ $result == 1 ]] && return 0
+    ;;
+  esac
+  return 1
+}
+
+
 ## if --push is passed as first argument to script, this will login to docker hub and push images
 PUSH_FLAG=${PUSH_FLAG:-0}
 if [[ "${1:-}" = "--push" ]]; then
@@ -103,7 +147,11 @@ else
   BUILD_CONTEXT="${BUILD_DIR}"
 fi
 
-docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
+echo "::group::Downloading Container Structure Test"
+  curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
+  mv container-structure-test-${PLATFORM//\//-} container-structure-test
+  chmod +x container-structure-test
+echo "::endgroup::"
 
 echo "::group::Environment Variables"
   echo "   Build Directory .... : ${BUILD_DIR}"
@@ -117,6 +165,7 @@ echo "::group::Environment Variables"
 echo "::endgroup::"
 
 echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
+  docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
   [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${VARIANT}"
@@ -149,6 +198,32 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
     ${MINOR_TAG}
   )
 
+echo "::endgroup::"
+
+echo "::group::Running container structure test"
+  TEST_NAME=$(echo "${BUILD_DIR}" | cut -d/ -f1)
+  TEST_VARIANT=$(echo "${BUILD_DIR}" | cut -d/ -f2-)
+  [[ "${TEST_VARIANT}" != "_base" ]] && TEST_NAME="${TEST_NAME}-${TEST_VARIANT//\//-}"
+
+  TESTS_DIR="${BASE_DIR}/.github/container-structure-tests"
+  CST_CONFIGS=("${TESTS_DIR}/${TEST_NAME}.yml")
+
+  if [[ -d "${TESTS_DIR}/${TEST_NAME}" ]]; then
+    for FILE in $(ls -r "${TESTS_DIR}/${TEST_NAME}"); do
+      APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
+
+      if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
+        CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}/${FILE}")
+        break
+      fi
+    done
+  fi
+
+  ${BASE_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
+  if [[ $? -ne 0 ]]; then
+    echo "::error title=Container Structure Test::Container Structure Test failed"
+    exit 2
+  fi
 echo "::endgroup::"
 
 echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"

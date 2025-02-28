@@ -1,0 +1,20 @@
+commandTests:
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^\\s+the ionCube PHP Loader"
+      - "(?m)SourceGuardian"
+      - "(?m)^blackfire"
+  - name: "PHP Info Check"
+    command: "php-fpm"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^\\s+ with blackfire"
+      - "(?m)^blackfire.agent_socket => tcp://blackfire-agent:8707 => tcp://blackfire-agent:8707"
+      - "(?m)^blackfire.apm_enabled => 1 => 1"
+
+fileExistenceTests:
+  - name: "PHP FPM Additional Configs"
+    path: "/etc/php.d/zz-blackfire.ini"
+    shouldExist: true

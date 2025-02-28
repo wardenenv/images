@@ -1,0 +1,19 @@
+commandTests:
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^the ionCube PHP Loader"
+      - "(?m)^SourceGuardian"
+      - "(?m)^SPX"
+  - name: "PHP Info Check"
+    command: "php-fpm"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^spx.debug => 1 => 1"
+      - "(?m)^spx.http_key => warden => warden"
+
+fileExistenceTests:
+  - name: "SPX Configs"
+    path: "/etc/php.d/30-spx.ini"
+    shouldExist: true

@@ -1,0 +1,54 @@
+commandTests:
+  - name: "PHP Exists"
+    command: "which"
+    args: ["php-fpm"]
+    expectedOutput: ["/usr/bin/php"]
+  - name: "PHP Version Check"
+    command: "php-fpm"
+    args: ["--version"]
+    expectedOutput: 
+      # (?m) will allow ^ and $ to match individual lines not start and end of entire string
+      - "(?m)^Zend Engine"
+      - "(?m)^[\\s]+with Zend OPcache"
+    excludedOutput:
+      - "(?m)^\\s+with the ionCube PHP Loader"
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    excludedOutput:
+      - "(?m)^\\s+the ionCube PHP Loader"
+      - "(?m)SourceGuardian"
+  - name: "PHP Info Check"
+    command: "php"
+    args: ["-i"]
+    excludedOutput:
+      - ".*/etc/php\\.d/01-ioncube-loader.ini.*"
+      - ".*/etc/php\\.d/15-sourceguardian.ini.*"
+      - "(?m)^For Loader updates visit www.ioncube.com/loaders.php"
+      - "(?m)^-ioncube.loader.encoded_paths => no value => no value"
+      - "(?m)^SourceGuardian Loader Support => enabled"
+      - "(?m)^sourceguardian.enable_debug => 0 => 0"
+
+fileExistenceTests:
+  - name: "PHP FPM"
+    path: "/usr/sbin/php-fpm"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+    uid: 0
+    gid: 0
+  - name: "IonCube Config"
+    path: "/etc/php.d/01-ioncube-loader.ini"
+    shouldExist: false
+  - name: "SourceGuardian Config"
+    path: "/etc/php.d/15-sourceguardian.ini"
+    shouldExist: false
+
+metadataTest:
+  envVars:
+    - key: COMPOSER_ALLOW_SUPERUSER
+      value: 1
+    - key: COMPOSER_HOME
+      value: /tmp/composer
+  exposedPorts: ["9000"]
+  entrypoint: ["docker-entrypoint"]
+  cmd: ["php-fpm"]
