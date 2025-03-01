@@ -9,7 +9,7 @@ commandTests:
     excludedOutput:
       - "(?m)^\\+with Xdebug v3\\.[012]\\." # Xdebug 3.2 is for xdebug3 variants only
 
-fileContentTest:
+fileContentTests:
   - name: "Xdebug 3"
     path: "/etc/php.d/15-xdebug.ini"
     expectedContents:
