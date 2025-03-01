@@ -168,7 +168,7 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
   docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
-  [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${VARIANT}"
+  [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${PHP_VERSION}${TAG_SUFFIX}
 
   echo ""
   echo "    Builder Image Name ... : ${BUILDER_IMAGE_NAME}"
@@ -223,7 +223,7 @@ echo "::group::Running container structure test"
     echo "Container Structure Test Config Files:"
     printf "    - %s\n" "${CST_CONFIGS[@]}"
 
-    ${BASE_DIR}/container-structure-test test --image "${IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
+    ${BASE_DIR}/container-structure-test test --image "${BUILDER_IMAGE_NAME}:build" $(printf -- "--config %s " "${CST_CONFIGS[@]}")
     if [[ $? -ne 0 ]]; then
       echo "::error title=Container Structure Test::Container Structure Test failed"
       exit 2
