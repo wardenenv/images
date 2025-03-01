@@ -1,0 +1,26 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "XDebug Version Check"
+    command: "php-fpm"
+    args: ["-v"]
+    expectedOutput:
+      - "(?m)^\\+with Xdebug v3\\."
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^the ionCube PHP Loader"
+      - "(?m)SourceGuardian"
+      - "(?m)^xdebug"
+  - name: "PHP Info Check"
+    command: "php-fpm"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^Support Xdebug on"
+      - "(?m)^xdebug\\.idekey => PHPSTORM => PHPSTORM"
+
+fileExistenceTests:
+  - name: "PHP FPM Additional Configs"
+    path: "/etc/php.d/15-xdebug.ini"
+    shouldExist: true

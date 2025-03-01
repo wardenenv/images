@@ -4,7 +4,7 @@ commandTests:
   - name: "PHP Runs"
     command: "which"
     args: ["php-fpm"]
-    expectedOutput: ["/usr/sbin/php"]
+    expectedOutput: ["/usr/sbin/php-fpm"]
   - name: "PHP Version Check"
     command: "php-fpm"
     args: ["--version"]

@@ -4,7 +4,7 @@ commandTests:
   - name: "PHP Exists"
     command: "which"
     args: ["php-fpm"]
-    expectedOutput: ["/usr/bin/php-fpm"]
+    expectedOutput: ["/usr/sbin/php-fpm"]
   - name: "PHP Module Check"
     command: "php-fpm"
     args: ["-m"]

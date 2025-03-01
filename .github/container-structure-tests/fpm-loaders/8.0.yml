@@ -2,12 +2,12 @@ schemaVersion: "2.0.0"
 
 commandTests:
   - name: "PHP Module Check"
-    command: "php"
+    command: "php-fpm"
     args: ["-m"]
     excludedOutput:
       - "(?m)^the ionCube PHP Loader"
   - name: "PHP Config Check"
-    command: "php"
+    command: "php-fpm"
     args: ["-i"]
     excludedOutput:
       - "/etc/php\\.d/01-ioncube-loader.ini"
