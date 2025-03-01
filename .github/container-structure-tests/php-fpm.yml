@@ -11,7 +11,7 @@ commandTests:
     command: "id"
     args: ["www-data"]
     expectedOutput:
-      - "(?m)^uid=1000(www-data) gid=1000(www-data) groups=1000(www-data).*"
+      - "(?m)^uid=1000\\(www-data\\) gid=1000\\(www-data\\) groups=1000\\(www-data\\)"
   - name: "NPM Exists"
     command: "which"
     args: ["npm"]
