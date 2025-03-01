@@ -5,13 +5,13 @@ commandTests:
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
-      - "(?m)^\\s+the ionCube PHP Loader"
+      - "(?m)^the ionCube PHP Loader"
       - "(?m)SourceGuardian"
   - name: "User Exists: www-data"
     command: "id"
     args: ["www-data"]
     expectedOutput:
-      - "uid=1000(www-data) gid=1000(www-data) groups=1000(www-data)"
+      - "(?m)^uid=1000(www-data) gid=1000(www-data) groups=1000(www-data)"
   - name: "NPM Exists"
     command: "which"
     args: ["npm"]
@@ -37,5 +37,5 @@ fileContentTests:
   - name: "Docker Entrypoint"
     path: "/usr/local/bin/docker-entrypoint"
     expectedContents:
-      - "(?m)^cat /etc/php\\.d/05-additions\\.ini\\.template \\"
+      - "(?m)^cat /etc/php\\.d/05-additions\\.ini\\.template"
       - "(?m)^sudo chown www-data:www-data /var/www/html"
