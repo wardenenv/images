@@ -205,21 +205,45 @@ echo "::group::Running container structure test"
   TEST_VARIANT=$(echo "${BUILD_DIR}" | cut -d/ -f2-)
   [[ "${TEST_VARIANT}" != "_base" ]] && TEST_NAME="${TEST_NAME}-${TEST_VARIANT//\//-}"
 
+  CST_CONFIGS=()
   TESTS_DIR="${BASE_DIR}/.github/container-structure-tests"
+
+  # If a generic variant (e.g. blackfire, xdebug3) test exists, use it
+  if [[ -e "${TESTS_DIR}/${VARIANT}.yaml" ]]; then
+    CST_CONFIGS+=("${TESTS_DIR}/${VARIANT}.yaml")
+  fi
+
+  # If a generic variant directory exists, use the first file that matches the PHP version
+  if [[ -d "${TESTS_DIR}/${VARIANT}" ]]; then
+    for FILE in $(ls -r "${TESTS_DIR}/${VARIANT}"); do
+      APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
+
+      if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
+        CST_CONFIGS+=("${TESTS_DIR}/${VARIANT}/${FILE}")
+        break
+      fi
+    done
+  fi
+
+    # If there is a specific image test, use it
   if [[ -e "${TESTS_DIR}/${TEST_NAME}.yml" ]]; then
-    CST_CONFIGS=("${TESTS_DIR}/${TEST_NAME}.yml")
+    CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}.yml")
+  fi
 
-    if [[ -d "${TESTS_DIR}/${TEST_NAME}" ]]; then
-      for FILE in $(ls -r "${TESTS_DIR}/${TEST_NAME}"); do
-        APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
+  # If a specific image test directory exists, use the first file that matches the PHP version
+  if [[ -d "${TESTS_DIR}/${TEST_NAME}" ]]; then
+    for FILE in $(ls -r "${TESTS_DIR}/${TEST_NAME}"); do
+      APPLIES_TO_VERSION=$(basename "$FILE" | cut -d. -f-2)
 
-        if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
-          CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}/${FILE}")
-          break
-        fi
-      done
-    fi
+      if versionCompare "${PHP_VERSION}" "${APPLIES_TO_VERSION}" ">="; then
+        CST_CONFIGS+=("${TESTS_DIR}/${TEST_NAME}/${FILE}")
+        break
+      fi
+    done
+  fi
 
+
+  if [[ ${#CST_CONFIGS[@]} -gt 0 ]]; then
     echo "Container Structure Test Config Files:"
     printf "    - %s\n" "${CST_CONFIGS[@]}"
 
@@ -229,7 +253,7 @@ echo "::group::Running container structure test"
       exit 2
     fi
   else
-    echo -e "\033[01;31m==> No container structure test config found for ${TEST_NAME}\033[0m"
+    echo -e "\033[01;31m==> No container structure test configurations found for ${TEST_NAME} or ${VARIANT}\033[0m"
   fi
 
 echo "::endgroup::"

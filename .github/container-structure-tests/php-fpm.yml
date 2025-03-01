@@ -10,6 +10,12 @@ commandTests:
     command: "which"
     args: ["npm"]
     expectedOutput: ["/usr/local/bin/npm"]
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^the ionCube PHP Loader"
+      - "(?m)SourceGuardian"
   - name: "PHP Info Check"
     command: "php-fpm"
     args: ["-i"]
