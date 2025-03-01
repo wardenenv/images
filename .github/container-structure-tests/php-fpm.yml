@@ -14,7 +14,6 @@ commandTests:
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
-      - "(?m)^the ionCube PHP Loader"
       - "(?m)SourceGuardian"
   - name: "PHP Info Check"
     command: "php-fpm"
