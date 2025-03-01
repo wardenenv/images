@@ -168,7 +168,7 @@ echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
   docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
-  [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${PHP_VERSION}${TAG_SUFFIX}
+  [[ "$VARIANT" != "_base" ]] && BUILDER_IMAGE_NAME="${IMAGE_NAME}-${PHP_VERSION}${TAG_SUFFIX}"
 
   echo ""
   echo "    Builder Image Name ... : ${BUILDER_IMAGE_NAME}"
