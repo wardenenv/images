@@ -8,8 +8,13 @@ commandTests:
       - "(?m)^imap"
       - "(?m)^ldap"
       - "(?m)^mongodb"
-      - "(?m)^pcntl"
       - "(?m)^sodium"
+  # PCNTL is for cli only, not php-fpm
+  - name: "PCNTL Check"
+    command: "php"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^pcntl"
   - name: "PHP Info Check"
     command: "php-fpm"
     args: ["-i"]

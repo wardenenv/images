@@ -12,18 +12,12 @@ commandTests:
       # (?m) will allow ^ and $ to match individual lines not start and end of entire string
       - "(?m)^Zend Engine"
       - "(?m)^\\s+with Zend OPcache"
-  - name: "Check for PCNTL Module"
-    command: "php"
-    args: ["-m"]
-    expectedOutput:
-      - "(?m)^pcntl$"
   - name: "PHP Info Check"
     command: "php"
     args: ["-i"]
     expectedOutput:
       - "(?m)^Debug Build => no$"
       - "(?m)^memory_limit => -1 => -1$"
-      - "(?m)^pcntl support => enabled"
   - name: "Composer 1 Check"
     command: "/usr/bin/composer1"
     args: ["--version"]
