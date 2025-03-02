@@ -15,14 +15,18 @@ commandTests:
     args: ["-m"]
     expectedOutput:
       - "(?m)^pcntl"
-  - name: "PHP Info Check"
+  - name: "PHP-FPM Info Check"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
-      - "(?m)^pcntl support => enabled"
       - "(?m)^realpath_cache_size => 4096K => 4096K"
       - "(?m)^memory_limit => 1G => 1G"
       - "(?m)^opcache\\.save_comments => On => On"
+  - name: "PHP CLI Info Check"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^pcntl support => enabled"
 
 fileExistenceTests:
   - name: "OroCommerce Init File"
