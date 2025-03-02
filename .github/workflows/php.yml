@@ -474,6 +474,10 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.eol_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.security_versions).major }}
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
+        exclude:
+          - php_version: "7.4"
+          - php_version: "8.0"
+          - php_version: "8.1"
     uses: ./.github/workflows/orocommerce.yml
     secrets: inherit
     with:

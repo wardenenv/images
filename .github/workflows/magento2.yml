@@ -33,37 +33,53 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        description: The environment to run the build under
         required: true
         type: string
         default: development
       php_version:
+        description: PHP Version to build
         required: true
         type: string
         default: "8.4"
       registries:
+        description: JSON-encoded array of registries to push to
         required: true
         type: string
-        default: "ghcr.io/wardenenv"
+        default: '["ghcr.io/wardenenv"]'
       php_source_image:
+        description: The source image to use for the PHP image
         required: true
         type: string
         default: "ghcr.io/wardenenv/centos-php"
       image_authors:
+        description: The authors of the image
         required: true
         type: string
         default: "Warden Developers"
       warden_image_repository:
+        description: Warden Image Repository
         required: true
         type: string
         default: "ghcr.io/wardenenv"
       push2dockerhub:
+        description: Push to Docker Hub?
         required: true
         type: boolean
         default: true
       dockerhub_username:
+        description: Docker Hub Username
         required: true
         type: string
         default: "wardenenv"
+
+jobs:
+  build:
+    name: Build
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        variant: [magento2]
 
 jobs:
   build:
