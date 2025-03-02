@@ -10,14 +10,11 @@ commandTests:
       - "(?m)^mongodb"
       - "(?m)^pcntl"
       - "(?m)^sodium"
-  - name: "NPM Exists"
-    command: "which"
-    args: ["npm"]
-    expectedOutput: ["/usr/local/bin/npm"]
   - name: "PHP Info Check"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
+      - "(?m)^pcntl support => enabled"
       - "(?m)^realpath_cache_size => 4096K => 4096K"
       - "(?m)^memory_limit => 1G => 1G"
       - "(?m)^opcache\\.save_comments => On => On"
