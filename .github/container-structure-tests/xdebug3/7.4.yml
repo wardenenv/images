@@ -5,9 +5,9 @@ commandTests:
     command: "php-fpm"
     args: ["-v"]
     expectedOutput:
-      - "(?m)^\\+with Xdebug v3\\.[012]\\."
+      - "(?m)^\\s+with Xdebug v3\\.[012]\\."
     excludedOutput:
-      - "(?m)^\\+with Xdebug v3\\.[3456789]\\."
+      - "(?m)^\\s+with Xdebug v3\\.[3456789]\\."
 
 fileContentTests:
   - name: "Xdebug 3.2"
