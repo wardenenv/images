@@ -80,14 +80,6 @@ jobs:
     strategy:
       matrix:
         variant: [magento2]
-
-jobs:
-  build:
-    name: Build
-    environment: ${{ inputs.environment }}
-    strategy:
-      matrix:
-        variant: [magento2]
         build_group: [php-fpm]
         platform: [linux/arm64, linux/amd64]
         runner: [ubuntu-24.04-arm, ubuntu-latest]
