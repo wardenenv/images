@@ -94,7 +94,7 @@ ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE:-"${WARDEN_IMAGE_REPOSITORY}/php-fpm"}"
 if [[ "${INDEV_FLAG:-1}" != "0" ]]; then
   ENV_SOURCE_IMAGE="${ENV_SOURCE_IMAGE}-indev"
 fi
-# export PHP_SOURCE_IMAGE ENV_SOURCE_IMAGE
+export PHP_SOURCE_IMAGE ENV_SOURCE_IMAGE
 
 if [[ -z ${PHP_VERSION} ]]; then
   echo "::error title=PHP Version Undefined" \
