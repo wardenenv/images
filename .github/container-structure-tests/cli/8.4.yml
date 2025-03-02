@@ -1,14 +1,14 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Run Check"
+  - name: "PHP Version Check"
     command: "php"
     args: ["--version"]
     expectedOutput: 
       # (?m) will allow ^ and $ to match individual lines not start and end of entire string
       - "(?m)^PHP 8\\.4\\.[0-9]+ \\(cli\\)"
 
-  - name: "Check for necessary libraries"
+  - name: "Sodium Module Loaded"
     command: "php"
     args: ["-m"]
     expectedOutput:
@@ -16,7 +16,7 @@ commandTests:
     excludedOutput:
       - "(?m)^xmlrpc"
 
-  - name: "Check necessary extensions enabled"
+  - name: "Sodium XMLRPC Configuration Check"
     command: "php"
     args: ["-i"]
     expectedOutput:

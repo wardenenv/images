@@ -5,14 +5,14 @@ commandTests:
     command: "which"
     args: ["php"]
     expectedOutput: ["/usr/bin/php"]
-  - name: "PHP Check"
+  - name: "PHP Version Output Check"
     command: "php"
     args: ["--version"]
     expectedOutput: 
       # (?m) will allow ^ and $ to match individual lines not start and end of entire string
       - "(?m)^Zend Engine"
-      - "(?m)^[\\s]+with Zend OPcache"
-  - name: "PHP Information Check"
+      - "(?m)^\\s+with Zend OPcache"
+  - name: "PHP Info Check"
     command: "php"
     args: ["-i"]
     expectedOutput:
@@ -35,34 +35,34 @@ commandTests:
       - "(?m)^Composer version 2\\.2\\.[0-9]+ "
 
 fileExistenceTests:
-  - name: "PHP Binary"
+  - name: "PHP Binary Exists"
     path: "/usr/bin/php"
     shouldExist: true
     permissions: '-rwxr-xr-x'
     uid: 0
     gid: 0
-  - name: "Composer 1 Binary"
+  - name: "Composer 1 Binary Exists"
     path: "/usr/bin/composer1"
     shouldExist: true
     permissions: '-rwxr-xr-x'
     uid: 0
     gid: 0
-  - name: "Composer 2 Binary"
+  - name: "Composer 2 Binary Exists"
     path: "/usr/bin/composer2"
     shouldExist: true
     permissions: '-rwxr-xr-x'
     uid: 0
     gid: 0
-  - name: "Composer 2 LTS Binary"
+  - name: "Composer 2 LTS Binary Exists"
     path: "/usr/bin/composer2lts"
     shouldExist: true
     permissions: '-rwxr-xr-x'
     uid: 0
     gid: 0
-  - name: "IonCube Config"
+  - name: "IonCube Config Does Not Exist"
     path: "/etc/php.d/01-ioncube-loader.ini"
     shouldExist: false
-  - name: "SourceGuardian Config"
+  - name: "SourceGuardian Config Does Not Exist"
     path: "/etc/php.d/15-sourceguardian.ini"
     shouldExist: false
 

@@ -1,11 +1,11 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Runs"
+  - name: "PHP-FPM Runs"
     command: "which"
     args: ["php-fpm"]
     expectedOutput: ["/usr/sbin/php-fpm"]
-  - name: "PHP Version Check"
+  - name: "PHP-FPM Version Check"
     command: "php-fpm"
     args: ["--version"]
     expectedOutput: 
@@ -14,13 +14,13 @@ commandTests:
       - "(?m)^[\\s]+with Zend OPcache"
     excludedOutput:
       - "(?m)^\\s+with the ionCube PHP Loader"
-  - name: "PHP Module Check"
+  - name: "Ensure ionCube and SourceGuardian Loaders Are Not Loaded"
     command: "php-fpm"
     args: ["-m"]
     excludedOutput:
       - "(?m)^\\s+the ionCube PHP Loader"
       - "(?m)SourceGuardian"
-  - name: "PHP Info Check"
+  - name: "Ensure ionCube and SourceGuardian Configs Are Not Loaded"
     command: "php-fpm"
     args: ["-i"]
     excludedOutput:
@@ -32,16 +32,16 @@ commandTests:
       - "(?m)^sourceguardian\\.enable_debug => 0 => 0"
 
 fileExistenceTests:
-  - name: "PHP FPM"
+  - name: "PHP-FPM Exists"
     path: "/usr/sbin/php-fpm"
     shouldExist: true
     permissions: '-rwxr-xr-x'
     uid: 0
     gid: 0
-  - name: "IonCube Config"
+  - name: "IonCube Config Does Not Exist"
     path: "/etc/php.d/01-ioncube-loader.ini"
     shouldExist: false
-  - name: "SourceGuardian Config"
+  - name: "SourceGuardian Config Does Not Exist"
     path: "/etc/php.d/15-sourceguardian.ini"
     shouldExist: false
 

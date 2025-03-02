@@ -1,12 +1,12 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Module Check"
+  - name: "Blackfire Module Loaded"
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
       - "(?m)^blackfire"
-  - name: "PHP Info Check"
+  - name: "Blackfire Configured"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
@@ -15,6 +15,6 @@ commandTests:
       - "(?m)^blackfire\\.apm_enabled => 1 => 1"
 
 fileExistenceTests:
-  - name: "PHP FPM Additional Configs"
+  - name: "Blackfire Configuration File Exists"
     path: "/etc/php.d/zz-blackfire.ini"
     shouldExist: true

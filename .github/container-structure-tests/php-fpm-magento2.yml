@@ -15,7 +15,7 @@ commandTests:
     expectedOutput: ["/usr/local/bin/yarn"]
 
 fileExistenceTests:
-  - name: "N98 Magerun"
+  - name: "N98 Magerun Exists"
     path: "/usr/local/bin/n98-magerun"
     shouldExist: true
     permissions: '-rwxr-xr-x'

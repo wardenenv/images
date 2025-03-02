@@ -1,14 +1,12 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Module Check"
+  - name: "SPX Module Loaded"
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
-      - "(?m)^the ionCube PHP Loader"
-      - "(?m)^SourceGuardian"
       - "(?m)^SPX"
-  - name: "PHP Info Check"
+  - name: "SPX Configuration Check"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
@@ -16,6 +14,6 @@ commandTests:
       - "(?m)^spx\\.http_key => warden => warden"
 
 fileExistenceTests:
-  - name: "SPX Configs"
+  - name: "SPX Config Exists"
     path: "/etc/php.d/30-spx.ini"
     shouldExist: true

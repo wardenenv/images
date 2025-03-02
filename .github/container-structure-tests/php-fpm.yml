@@ -10,12 +10,12 @@ commandTests:
     command: "which"
     args: ["npm"]
     expectedOutput: ["/usr/local/bin/npm"]
-  - name: "PHP Module Check"
+  - name: "SourceGuardian Module Loaded"
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
       - "(?m)SourceGuardian"
-  - name: "PHP Info Check"
+  - name: "PHP Info Values Check"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
@@ -24,10 +24,10 @@ commandTests:
       - "(?m)^memory_limit => 756M => 756M"
 
 fileExistenceTests:
-  - name: "PHP FPM Additional Configs"
+  - name: "PHP-FPM Additional Configs"
     path: "/etc/php.d/05-additions.ini.template"
     shouldExist: true
-  - name: "Mailpit"
+  - name: "Sendmail Configured for Mailpit"
     path: "/usr/local/bin/mhsendmail"
     shouldExist: true
     permissions: '-rwxr-xr-x'

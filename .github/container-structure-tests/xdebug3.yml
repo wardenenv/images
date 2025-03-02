@@ -1,17 +1,17 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "XDebug Version Check"
+  - name: "XDebug Version Check (Generic)"
     command: "php-fpm"
     args: ["-v"]
     expectedOutput:
       - "(?m)^\\s+with Xdebug v3\\."
-  - name: "PHP Module Check"
+  - name: "Xdebug Module Loaded"
     command: "php-fpm"
     args: ["-m"]
     expectedOutput:
       - "(?m)^xdebug"
-  - name: "PHP Info Check"
+  - name: "Xdebug Configuration"
     command: "php-fpm"
     args: ["-i"]
     expectedOutput:
@@ -19,6 +19,6 @@ commandTests:
       - "(?m)^xdebug\\.idekey => PHPSTORM => PHPSTORM"
 
 fileExistenceTests:
-  - name: "PHP FPM Additional Configs"
+  - name: "Xdebug Configuration File Exists"
     path: "/etc/php.d/15-xdebug.ini"
     shouldExist: true

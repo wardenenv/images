@@ -1,12 +1,12 @@
 schemaVersion: "2.0.0"
 
 commandTests:
-  - name: "PHP Module Check"
+  - name: "ionCube Module Loaded"
     command: "php"
     args: ["-m"]
     expectedOutput:
       - "(?m)^the ionCube PHP Loader"
-  - name: "PHP Config Check"
+  - name: "ionCube Configuration Check"
     command: "php"
     args: ["-i"]
     expectedOutput:
@@ -15,6 +15,6 @@ commandTests:
       - "(?m)^ioncube\\.loader\\.encoded_paths => no value => no value"
 
 fileExistenceTests:
-  - name: "IonCube Config"
+  - name: "IonCube Config Exists"
     path: "/etc/php.d/01-ioncube-loader.ini"
     shouldExist: true

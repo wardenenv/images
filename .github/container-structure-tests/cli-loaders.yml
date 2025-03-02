@@ -5,12 +5,12 @@ commandTests:
     command: "which"
     args: ["php"]
     expectedOutput: ["/usr/bin/php"]
-  - name: "PHP Module Check"
+  - name: "SourceGuardian Module Loaded"
     command: "php"
     args: ["-m"]
     expectedOutput:
       - "(?m)SourceGuardian"
-  - name: "PHP Config Check"
+  - name: "SourceGuardian Configuration Check"
     command: "php"
     args: ["-i"]
     expectedOutput:
@@ -19,6 +19,6 @@ commandTests:
       - "(?m)^sourceguardian\\.enable_debug => 0 => 0"
 
 fileExistenceTests:
-  - name: "SourceGuardian Config"
+  - name: "SourceGuardian Configuration File Exists"
     path: "/etc/php.d/15-sourceguardian.ini"
     shouldExist: true
