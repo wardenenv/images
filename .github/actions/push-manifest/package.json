@@ -1,5 +1,5 @@
 {
-  "name": "get-php-versions",
+  "name": "push-manifest",
   "description": "",
   "main": "src/main.js",
   "exports": {
