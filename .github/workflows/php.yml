@@ -4,8 +4,8 @@ on:
     inputs:
       environment:
         description: 'Environment to build'
-        required: true
-        default: 'development'
+        required: false
+        default: ''
       push2dockerhub:
         description: Push images to Dockerhub?
         required: true
