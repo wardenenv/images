@@ -27,9 +27,6 @@ on:
       push2dockerhub:
         required: true
         type: boolean
-      dockerhub_username:
-        required: true
-        type: string
   workflow_dispatch:
     inputs:
       environment:
@@ -67,11 +64,9 @@ on:
         required: true
         type: boolean
         default: true
-      dockerhub_username:
-        description: Docker Hub Username
-        required: true
-        type: string
-        default: "wardenenv"
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME || 'wardenenv' }}
 
 jobs:
   build:
@@ -107,8 +102,8 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build
         env:
           BUILD_GROUP: ${{ matrix.build_group }}
@@ -160,8 +155,8 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Create manifest list ${{ inputs.php_version }}
         uses: ./.github/actions/push-manifest
         with:
@@ -206,8 +201,8 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build
         env:
           BUILD_GROUP: ${{ matrix.build_group }}
@@ -264,8 +259,8 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Create manifest list ${{ inputs.php_version }}
         uses: ./.github/actions/push-manifest
         with:

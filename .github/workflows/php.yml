@@ -17,10 +17,13 @@ on:
       - main
       - develop
     paths:
-      - php/**
       - .github/workflows/php.yml
+      - .github/workflows/php-fpm.yml
+      - .github/workflows/magento1.yml
+      - .github/workflows/magento2.yml
+      - .github/workflows/orocommerce.yml
+      - php/**
       - php-fpm/**
-      - scripts/build.sh
 
 env:
   IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
@@ -418,7 +421,6 @@ jobs:
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
-      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
   magento1:
@@ -440,7 +442,6 @@ jobs:
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
-      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
   magento2:
@@ -462,7 +463,6 @@ jobs:
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
-      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
   orocommerce:
@@ -488,5 +488,4 @@ jobs:
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
-      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
