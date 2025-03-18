@@ -29,8 +29,8 @@ RUN set -eux \
     && cp /etc/php.ini /etc/php-cli.ini \
     && perl -pi -e 's/memory_limit(.*)/memory_limit=-1/g' /etc/php-cli.ini
 
-ENV COMPOSER_ALLOW_SUPERUSER 1
-ENV COMPOSER_HOME /tmp/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_HOME=/tmp/composer
 COPY --from=composer:1 /usr/bin/composer /usr/bin/composer1
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer2
 COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer2lts

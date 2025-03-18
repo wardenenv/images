@@ -1,0 +1,19 @@
+name: Get PHP Versions
+author: Brett Patterson
+description: Fetch PHP versions from PHP, and assign to appropriate outputes
+inputs:
+  version-constraint:
+    description: |
+      Only return information for versions matching this constraint.
+      This is an NPM-style version constraint, see: https://github.com/npm/node-semver
+    required: false
+outputs:
+  php_eol_versions:
+    description: The PHP versions that have reached End-of-Life (EOL)
+  php_security_versions:
+    description: The PHP versions that are receiving security updates only
+  php_stable_versions:
+    description: The PHP versions that are actively receiving features and security updates
+runs:
+  using: node20
+  main: dist/index.js

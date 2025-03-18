@@ -1,0 +1,18 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "XDebug Version Check"
+    command: "php-fpm"
+    args: ["-v"]
+    expectedOutput:
+      - "(?m)^\\s+with Xdebug v3\\.[3456789]\\."
+    excludedOutput:
+      - "(?m)^\\s+with Xdebug v3\\.[012]\\." # Xdebug 3.2 is for xdebug3 variants only
+
+fileContentTests:
+  - name: "Xdebug 3"
+    path: "/etc/php.d/15-xdebug.ini"
+    expectedContents:
+      - "(?m)^xdebug\\.client_discovery_header=\"HTTP_X_DEBUG_HOST,HTTP_X_FORWARDED_FOR,REMOTE_ADDR\""
+    excludedContents:
+      - "(?m)^xdebug\\.client_discovery_header=\"HTTP_X_DEBUG_HOST\""

@@ -1,8 +1,8 @@
-ARG ENV_SOURCE_IMAGE
-ARG PHP_VERSION
+ARG ENV_SOURCE_IMAGE="ghcr.io/wardenenv/php-fpm"
+ARG PHP_VERSION="8.4"
 
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
-ARG PHP_EXTENSIONS="pcntl imap tidy ldap pecl-mongodb"
+ARG PHP_EXTENSIONS="imap tidy ldap pecl-mongodb"
 
 USER root
 

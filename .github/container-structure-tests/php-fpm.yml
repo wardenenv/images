@@ -1,0 +1,40 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "User Exists: www-data"
+    command: "id"
+    args: ["www-data"]
+    expectedOutput:
+      - "(?m)^uid=1000\\(www-data\\) gid=1000\\(www-data\\) groups=1000\\(www-data\\)"
+  - name: "NPM Exists"
+    command: "which"
+    args: ["npm"]
+    expectedOutput: ["/usr/local/bin/npm"]
+  - name: "SourceGuardian Module Loaded"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)SourceGuardian"
+  - name: "PHP Info Values Check"
+    command: "php-fpm"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^upload_max_filesize => 25M => 25M"
+      - "(?m)^opcache\\.enable => On => On"
+      - "(?m)^memory_limit => 756M => 756M"
+
+fileExistenceTests:
+  - name: "PHP-FPM Additional Configs"
+    path: "/etc/php.d/05-additions.ini.template"
+    shouldExist: true
+  - name: "Sendmail Configured for Mailpit"
+    path: "/usr/local/bin/mhsendmail"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+
+fileContentTests:
+  - name: "Docker Entrypoint"
+    path: "/usr/local/bin/docker-entrypoint"
+    expectedContents:
+      - "(?m)^cat /etc/php\\.d/05-additions\\.ini\\.template"
+      - "(?m)^sudo chown www-data:www-data /var/www/html"

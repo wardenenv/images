@@ -1,5 +1,5 @@
-ARG ENV_SOURCE_IMAGE
-ARG PHP_VERSION
+ARG ENV_SOURCE_IMAGE="ghcr.io/wardenenv/php-fpm"
+ARG PHP_VERSION="8.4"
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION} AS spx-builder
 
 USER root
@@ -19,7 +19,7 @@ RUN set -eux \
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
 COPY --from=spx-builder /usr/lib64/php/modules/spx.so /usr/lib64/php/modules/spx.so
 COPY --from=spx-builder /usr/share/misc/php-spx /usr/share/misc/php-spx
-COPY spx/spx.ini /etc/php.d/30-spx.ini
+COPY spx.ini /etc/php.d/30-spx.ini
 
 ENV SPX_ENABLED=1
 USER www-data

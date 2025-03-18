@@ -1,0 +1,21 @@
+{
+  "name": "get-php-versions",
+  "description": "",
+  "main": "src/main.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "ncc build src/index.js --source-map --minify",
+    "build:watch": "npm run build -- --watch",
+    "local-action": "npx local-action . src/main.js .env"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1"
+  },
+  "devDependencies": {
+    "@github/local-action": "^2.6.2",
+    "@vercel/ncc": "^0.38.3",
+    "semver": "^7.7.1"
+  }
+}

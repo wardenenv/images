@@ -1,0 +1,20 @@
+name: Push Multi-Arch Manifest
+author: Brett Patterson
+description: Push manifests for multi-arch images to registries
+inputs:
+  repository:
+    description: |
+      The container registry repository to push the manifest to. This repository should already contain
+      the layers necessary.
+    required: true
+  metadata-path:
+    description: The path to the location containing the JSON object with image details
+    required: true
+  annotations:
+    description: Annotations that should be added to the manifest.
+    required: false
+  tags:
+    description: Additional tags that should be applied to the manifest
+runs:
+  using: node20
+  main: dist/index.js

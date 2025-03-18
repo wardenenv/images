@@ -1,0 +1,45 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "PHP Module Check"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^imap"
+      - "(?m)^ldap"
+      - "(?m)^mongodb"
+      - "(?m)^sodium"
+  # PCNTL is for cli only, not php-fpm
+  - name: "PCNTL Check"
+    command: "php"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)^pcntl"
+  - name: "PHP-FPM Info Check"
+    command: "php-fpm"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^realpath_cache_size => 4096K => 4096K"
+      - "(?m)^memory_limit => 1G => 1G"
+      - "(?m)^opcache\\.save_comments => On => On"
+  - name: "PHP CLI Info Check"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^pcntl support => enabled"
+
+fileExistenceTests:
+  - name: "OroCommerce Init File"
+    path: "/usr/local/bin/oro-init"
+    shouldExist: true
+  - name: "OroCommerce Supervisor Websocket Config"
+    path: "/etc/supervisord.d/oro-web-socket.ini"
+    shouldExist: true
+  - name: "OroCommerce Supervisor Message Consumer Config"
+    path: "/etc/supervisord.d/oro-message-consumer.ini"
+    shouldExist: true
+
+fileContentTests:
+  - name: "Oro-Init is in Entrypoint"
+    path: "/usr/local/bin/docker-entrypoint"
+    expectedContents: ["(?m)^oro-init"]

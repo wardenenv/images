@@ -1,5 +1,5 @@
-ARG ENV_SOURCE_IMAGE
-ARG PHP_VERSION
+ARG ENV_SOURCE_IMAGE="ghcr.io/wardenenv/php-fpm"
+ARG PHP_VERSION="8.4"
 FROM ${ENV_SOURCE_IMAGE}:${PHP_VERSION}
 USER root
 
@@ -8,7 +8,7 @@ RUN set -eux \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-COPY debug/etc/*.ini /etc/
-COPY debug/etc/php.d/*.ini /etc/php.d/
+COPY etc/*.ini /etc/
+COPY etc/php.d/*.ini /etc/php.d/
 
 USER www-data

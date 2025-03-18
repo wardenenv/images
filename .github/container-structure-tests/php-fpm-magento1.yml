@@ -1,0 +1,21 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "Grunt Exists"
+    command: "which"
+    args: ["grunt"]
+    expectedOutput: ["/usr/local/bin/grunt"]
+  - name: "Gulp Exists"
+    command: "which"
+    args: ["gulp"]
+    expectedOutput: ["/usr/local/bin/gulp"]
+  - name: "Yarn Exists"
+    command: "which"
+    args: ["yarn"]
+    expectedOutput: ["/usr/local/bin/yarn"]
+
+fileExistenceTests:
+  - name: "N98 Magerun Exists"
+    path: "/usr/local/bin/n98-magerun"
+    shouldExist: true
+    permissions: '-rwxr-xr-x'

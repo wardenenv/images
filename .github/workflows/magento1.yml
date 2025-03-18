@@ -1,0 +1,276 @@
+
+name: Build Magento1
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      php_version:
+        required: true
+        type: string
+      php_version_map:
+        required: true
+        type: string
+      registries:
+        required: true
+        type: string
+      php_source_image:
+        required: true
+        type: string
+      image_authors:
+        required: true
+        type: string
+      warden_image_repository:
+        required: true
+        type: string
+      push2dockerhub:
+        required: true
+        type: boolean
+      dockerhub_username:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: The environment to run the build under
+        required: true
+        type: string
+        default: development
+      php_version:
+        description: PHP Version to build
+        required: true
+        type: string
+        default: "8.4"
+      registries:
+        description: JSON-encoded array of registries to push to
+        required: true
+        type: string
+        default: '["ghcr.io/wardenenv"]'
+      php_source_image:
+        description: The source image to use for the PHP image
+        required: true
+        type: string
+        default: "ghcr.io/wardenenv/centos-php"
+      image_authors:
+        description: The authors of the image
+        required: true
+        type: string
+        default: "Warden Developers"
+      warden_image_repository:
+        description: Warden Image Repository
+        required: true
+        type: string
+        default: "ghcr.io/wardenenv"
+      push2dockerhub:
+        description: Push to Docker Hub?
+        required: true
+        type: boolean
+        default: true
+      dockerhub_username:
+        description: Docker Hub Username
+        required: true
+        type: string
+        default: "wardenenv"
+
+jobs:
+  build:
+    name: Build
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        variant: [magento1]
+        build_group: [php-fpm]
+        platform: [linux/arm64, linux/amd64]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "full_php_version=$(jq -cr --arg majorVers "${{ inputs.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        env:
+          BUILD_GROUP: ${{ matrix.build_group }}
+          PRE_AUTH: 1
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ inputs.php_version }}
+          FULL_PHP_VERSION: ${{ steps.prepare.outputs.full_php_version }}
+          VARIANT: ${{ matrix.variant }}
+          PLATFORM: ${{ matrix.platform }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          REGISTRIES: ${{ inputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ inputs.php_source_image }}
+          ENV_SOURCE_IMAGE: ${{ inputs.warden_image_repository }}/php-fpm
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ inputs.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  push:
+    name: Push
+    runs-on: ubuntu-24.04-arm
+    needs: [build]
+    environment: ${{inputs.environment }}
+    strategy:
+      matrix:
+        variant: [magento1]
+        build_group: [php-fpm]
+        php_version:
+            - ${{ inputs.php_version }}
+        registry: ${{ fromJSON(inputs.registries) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-${{ matrix.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Create manifest list ${{ inputs.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ matrix.registry }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ inputs.image_authors }}
+            index:org.opencontainers.image.description=PHP image for use in Magento 1.x / OpenMage environments
+
+  build-variants:
+    name: Build Variants
+    needs: [push]
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        variant: [blackfire, debug, xdebug3]
+        build_group: [php-fpm/magento1]
+        platform: [linux/arm64, linux/amd64]
+        runner: [ubuntu-24.04-arm, ubuntu-latest]
+        exclude:
+          # Don't build arm on amd and vice-versa
+          - platform: linux/arm64
+            runner: ubuntu-latest
+          - platform: linux/amd64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Prepare
+        id: prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "sanitizedBuildGroup=$(echo "${{ matrix.build_group}}" | tr / _)" >> $GITHUB_ENV
+          echo "full_php_version=$(jq -cr --arg majorVers "${{ inputs.php_version }}" '.[$majorVers]' <<< '${{ inputs.php_version_map }}')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        env:
+          BUILD_GROUP: ${{ matrix.build_group }}
+          PRE_AUTH: 1
+          PUSH_FLAG: 1
+          PHP_VERSION: ${{ inputs.php_version }}
+          FULL_PHP_VERSION: ${{ steps.prepare.outputs.full_php_version }}
+          PHP_VARIANT: fpm-loaders
+          VARIANT: ${{ matrix.variant }}
+          PLATFORM: ${{ matrix.platform }}
+          INDEV_FLAG: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+          REGISTRIES: ${{ inputs.registries }}
+          PHP_SOURCE_IMAGE: ${{ inputs.php_source_image }}
+          ENV_SOURCE_IMAGE: ${{ inputs.warden_image_repository }}/php-fpm
+          METADATA_DIR: ${{ runner.temp }}/metadata
+        run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
+      - name: Push Metadata Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ inputs.php_version }}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/metadata/*
+          if-no-files-found: error
+          retention-days: 1
+
+  push-variants:
+    name: Push Variants
+    runs-on: ubuntu-24.04-arm
+    needs: [build-variants]
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        variant: [blackfire, debug, xdebug3]
+        build_group: [php-fpm/magento1]
+        php_version:
+          - ${{ inputs.php_version }}
+        registry: ${{ fromJSON(inputs.registries) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare
+        id: prepare
+        run: |
+          echo "sanitizedBuildGroup=$(echo "${{ matrix.build_group}}" | tr / _)" >> $GITHUB_ENV
+      - name: Download metadata
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/metadata
+          pattern: metadata-${{ inputs.php_version}}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-*
+          merge-multiple: true
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        if: inputs.push2dockerhub
+        with:
+          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Create manifest list ${{ inputs.php_version }}
+        uses: ./.github/actions/push-manifest
+        with:
+          repository: ${{ matrix.registry }}
+          metadata-path: ${{ runner.temp }}/metadata
+          annotations: |-
+            index:org.opencontainers.image.authors=${{ inputs.IMAGE_AUTHORS }}
+            index:org.opencontainers.image.description=PHP image with ${{ matrix.variant }} for Magento 1.x / OpenMage environments

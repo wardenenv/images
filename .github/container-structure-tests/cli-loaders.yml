@@ -1,0 +1,24 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: "PHP Exists"
+    command: "which"
+    args: ["php"]
+    expectedOutput: ["/usr/bin/php"]
+  - name: "SourceGuardian Module Loaded"
+    command: "php"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)SourceGuardian"
+  - name: "SourceGuardian Configuration Check"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - "/etc/php\\.d/15-sourceguardian.ini"
+      - "(?m)^SourceGuardian Loader Support => enabled"
+      - "(?m)^sourceguardian\\.enable_debug => 0 => 0"
+
+fileExistenceTests:
+  - name: "SourceGuardian Configuration File Exists"
+    path: "/etc/php.d/15-sourceguardian.ini"
+    shouldExist: true
