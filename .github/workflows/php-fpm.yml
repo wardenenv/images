@@ -107,7 +107,7 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          username: ${{ inputs.dockerhub_username }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build
         env:
@@ -159,7 +159,7 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          username: ${{ inputs.dockerhub_username }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Create manifest list ${{ inputs.php_version }}
         uses: ./.github/actions/push-manifest
@@ -204,7 +204,7 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          username: ${{ inputs.dockerhub_username }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build
         env:
@@ -258,7 +258,7 @@ jobs:
       - uses: docker/login-action@v3
         if: inputs.push2dockerhub
         with:
-          username: ${{ inputs.DOCKERHUB_USERNAME }}
+          username: ${{ inputs.dockerhub_username }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Create manifest list ${{ inputs.php_version }}
         uses: ./.github/actions/push-manifest
