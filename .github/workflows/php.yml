@@ -25,7 +25,7 @@ on:
 env:
   IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
-  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME || 'wardenenv' }}
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
