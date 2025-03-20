@@ -18,3 +18,6 @@ fileExistenceTests:
   - name: "Blackfire Configuration File Exists"
     path: "/etc/php.d/zz-blackfire.ini"
     shouldExist: true
+  - name: "Blackfire CLI Exists"
+    path: "/usr/bin/blackfire"
+    shouldExist: true

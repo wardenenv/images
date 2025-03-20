@@ -28,7 +28,7 @@ on:
 env:
   IMAGE_AUTHORS: ${{ vars.IMAGE_AUTHORS || 'wardenenv' }}
   WARDEN_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME || 'wardenenv' }}
+  DOCKERHUB_USERNAME: ${{ vars.DOCKER_USERNAME || 'wardenenv' }}
   PHP_SOURCE_IMAGE_REPOSITORY: ${{ vars.WARDEN_IMAGE_REPOSITORY || 'ghcr.io/wardenenv' }}
   PHP_SOURCE_IMAGE_NAME: ${{ vars.PHP_SOURCE_IMAGE_NAME || 'centos-php' }}
 
@@ -75,7 +75,7 @@ jobs:
       warden_image_repository: ${{ steps.define-vars.outputs.warden_image_repository }}
       push2dockerhub: ${{ steps.define-vars.outputs.push2dockerhub }}
     steps:
-      - name: Define registries
+      - name: Define Variables
         id: define-vars
         run: |
           push2dockerhub=true
@@ -100,8 +100,12 @@ jobs:
           echo "dockerhub_username=${DOCKERHUB_USERNAME:-}" >> $GITHUB_OUTPUT
           echo "warden_image_repository=${WARDEN_IMAGE_REPOSITORY:-}" >> $GITHUB_OUTPUT
 
-          echo "::notice title=List of registries to push to::${REGISTRIES}"
-          echo "::notice title=PHP source image to use::${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}"
+          echo "::notice title=Push to Dockerhub Flag::Push to Dockerhub? '${push2dockerhub:-true}'"
+          echo "::notice title=List of registries to push to::Registries = '${REGISTRIES}'"
+          echo "::notice title=PHP source image to use::PHP Source Image = '${PHP_SOURCE_IMAGE_REPOSITORY}/${PHP_SOURCE_IMAGE_NAME}'"
+          echo "::notice title=Image Authors::Image Authors = '${IMAGE_AUTHORS:-}'"
+          echo "::notice title=Dockerhub Username::Dockerhub Username = '${DOCKERHUB_USERNAME:-}'"
+          echo "::notice title=Warden Image Repo::Warden Image Repo = '${WARDEN_IMAGE_REPOSITORY:-}'"
 
   build-cli:
     name: Build CLI
@@ -420,6 +424,7 @@ jobs:
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
@@ -441,6 +446,7 @@ jobs:
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
@@ -462,6 +468,7 @@ jobs:
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
 
@@ -487,5 +494,6 @@ jobs:
       registries: ${{ needs.define-variables.outputs.registries }}
       php_source_image: ${{ needs.define-variables.outputs.php_source_image }}
       image_authors: ${{ needs.define-variables.outputs.image_authors }}
+      dockerhub_username: ${{ needs.define-variables.outputs.dockerhub_username }}
       push2dockerhub: ${{ needs.define-variables.outputs.push2dockerhub == 'true' }}
       warden_image_repository: ${{ needs.define-variables.outputs.warden_image_repository }}
