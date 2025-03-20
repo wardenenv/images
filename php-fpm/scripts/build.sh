@@ -164,7 +164,10 @@ echo "::group::Environment Variables"
   echo "   Image Name ......... : ${IMAGE_NAME}" 
 echo "::endgroup::"
 
-echo "::group::Building ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
+echo "::group::Building ${IMAGE_NAME} (PHP/${PHP_VERSION} ${VARIANT} ${PLATFORM})"
+
+  printf "\e[01;31m==> building ${IMAGE_NAME} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
+
   docker buildx use warden-builder >/dev/null 2>&1 || docker buildx create --name warden-builder --use
 
   BUILDER_IMAGE_NAME=$IMAGE_NAME
@@ -258,20 +261,28 @@ echo "::group::Running container structure test"
 
 echo "::endgroup::"
 
-echo "::group::Pushing layers to registries for ${IMAGE_NAME}:${IMAGE_TAG}${TAG_SUFFIX} (${PLATFORM})"
+echo "::group::Pushing layers to registries for ${IMAGE_NAME} (${PLATFORM})"
 
-  printf "\e[01;31m==> building ${IMAGE_TAG} from ${BUILD_DIR}/Dockerfile with context ${BUILD_CONTEXT}\033[0m\n"
+  echo -e "\e[01;35m===> Registries to push layers to <==\033[0m"
+  echo -e "\e[01;33m${REGISTRIES}\033[0m"
+  echo -e "\e[01;35m===> <===\033[0m"
 
   NAMES=()
   for registry in $(jq -r '.[]' <<< "${REGISTRIES}"); do
     NAMES+=("${registry}/${IMAGE_NAME}")
   done
 
+  REGISTRY_LIST=$(IFS=, ; echo "${NAMES[*]}")
+
+  echo -e "\e[01;35m===> Registry List compiled from registries <==\033[0m"
+  echo -e "\e[01;33m${REGISTRY_LIST}\033[0m"
+  echo -e "\e[01;35m===> <===\033[0m"
+
   docker buildx build \
     $PUSH_FLAG \
     --platform=${PLATFORM} \
     --metadata-file metadata.json \
-    --output=type=image,\"name=$(IFS=, ; echo "${NAMES[*]}")\",push-by-digest=true,name-canonical=true \
+    --output=type=image,\"name=${REGISTRY_LIST}\",push-by-digest=true,name-canonical=true \
     -f ${BUILD_DIR}/Dockerfile \
     $(printf -- "--build-arg %s " "${BUILD_ARGS[@]}") \
     "${BUILD_CONTEXT}"
