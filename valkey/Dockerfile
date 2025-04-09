@@ -1,0 +1,2 @@
+ARG REDIS_VERSION
+FROM valkey/valkey:${VALKEY_VERSION}-alpine
