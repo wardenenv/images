@@ -7,9 +7,9 @@ RUN npm install -g grunt-cli gulp yarn
 
 RUN set -eux \
     && PHP_VERSION=$(php -v | head -n1 | cut -d' ' -f2 | awk -F '.' '{print $1$2}') \
-    && if (( ${PHP_VERSION} >= 72 )); \
-        then MAGERUN_PHAR_URL=https://files.magerun.net/n98-magerun2.phar; \
-        else MAGERUN_PHAR_URL=https://files.magerun.net/n98-magerun2-3.2.0.phar; \
+    && if (( ${PHP_VERSION} < 80 )); \
+        then MAGERUN_PHAR_URL=https://files.magerun.net/n98-magerun2-7.5.0.phar; \
+        else MAGERUN_PHAR_URL=https://files.magerun.net/n98-magerun2.phar; \
     fi \
     && mkdir -p /usr/local/bin \
     && curl -s ${MAGERUN_PHAR_URL} > /usr/local/bin/n98-magerun \
@@ -17,9 +17,9 @@ RUN set -eux \
 
 RUN set -eux \
     && PHP_VERSION=$(php -v | head -n1 | cut -d' ' -f2 | awk -F '.' '{print $1$2}') \
-    && if (( ${PHP_VERSION} >= 72 )); \
-        then MAGERUN_BASH_REF=master; \
-        else MAGERUN_BASH_REF=3.2.0; \
+    && if (( ${PHP_VERSION} < 80 )); \
+        then MAGERUN_BASH_REF=7.5.0; \
+        else MAGERUN_BASH_REF=master;\
     fi \
     && curl -o /etc/bash_completion.d/n98-magerun2.phar.bash \
         https://raw.githubusercontent.com/netz98/n98-magerun2/${MAGERUN_BASH_REF}/res/autocompletion/bash/n98-magerun2.phar.bash \
