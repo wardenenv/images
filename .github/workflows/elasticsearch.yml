@@ -45,6 +45,8 @@ jobs:
           - "8.13"
           - "8.14"
           - "8.15"
+          - "8.16"
+          - "8.17"
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3

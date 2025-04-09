@@ -25,6 +25,7 @@ jobs:
           - "3.12"
           - "3.13"
           - "4.0"
+          - "4.1-rc"
 
     steps:
       - uses: actions/checkout@v4
