@@ -40,7 +40,6 @@ jobs:
           - "2.17"
           - "2.18"
           - "2.19"
-          - "3"
 
     steps:
       - uses: actions/checkout@v4
