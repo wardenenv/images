@@ -3,7 +3,7 @@ ARG PHP_VERSION="8.4"
 ARG PHP_VARIANT="fpm-loaders"
 
 FROM golang:alpine AS mhs-builder
-RUN go install github.com/axllent/mailpit/sendmail@latest
+RUN go install github.com/axllent/mailpit/sendmail@v1.24.2
 
 FROM ${PHP_SOURCE_IMAGE}:${PHP_VERSION}-${PHP_VARIANT}
 
