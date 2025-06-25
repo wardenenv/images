@@ -30,7 +30,7 @@ jobs:
           - "1.26"
           - "1.27"
           - "1.28"
-
+          - "1.29"
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3

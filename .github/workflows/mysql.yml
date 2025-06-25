@@ -26,6 +26,7 @@ jobs:
           - "9.0"
           - "9.1"
           - "9.2"
+          - "9.3"
 
     steps:
       - uses: actions/checkout@v4
