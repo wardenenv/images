@@ -13,7 +13,7 @@ ENV NGINX_UPSTREAM_BLACKFIRE_PORT 9000
 ENV NGINX_ROOT                    /var/www/html
 ENV NGINX_PUBLIC                  ''
 ENV NGINX_TEMPLATE                application.conf
-ENV NGINX_RESOLVER                127.0.0.1
+ENV NGINX_RESOLVER                127.0.0.11
 ENV XDEBUG_CONNECT_BACK_HOST      '""'
 
 COPY etc/nginx/fastcgi_params /etc/nginx/fastcgi_params.template
