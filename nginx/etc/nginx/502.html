@@ -1,0 +1,161 @@
+<html>
+  <head>
+    <title>502 Bad Gateway</title>
+    <style>
+        center, .center {
+            text-align: center;
+        }
+        [data-warden-cookie-helper] {
+            margin: 20px auto;
+            padding: 25px;
+            max-width: 800px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        [data-warden-cookie-helper] h3 {
+            margin: 0 0 15px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+        [data-warden-cookie-helper] p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        [data-warden-cookie-helper] table {
+            display: inline-block;
+            vertical-align: top;
+            margin: 15px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        [data-warden-cookie-helper] td {
+            padding: 12px 15px;
+            font-size: 14px;
+        }
+        [data-warden-cookie-helper] tr:not(:last-child) td {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        [data-warden-cookie-helper] tr:first-child td {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        [data-warden-cookie-helper] tr td.status--enabled {
+            color: #28a745;
+        }
+        [data-warden-cookie-helper] tr td.status--disabled {
+            color: #dc3545;
+        }
+        [data-warden-cookie-helper] tr:nth-child(n+3) td:first-child {
+            background: #f5f5f5;
+            font-size: 12px;
+            color: #666;
+        }
+        [data-warden-cookie-helper] button {
+            background: linear-gradient(135deg, #4fa8ff, #007bff);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        [data-warden-cookie-helper] button:hover {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,123,255,0.3);
+        }
+    </style>
+  </head>
+  <body>
+    <center>
+      <h1>502 Bad Gateway</h1>
+      <hr />
+      <p>nginx</p>
+    </center>
+
+    <div data-warden-cookie-helper>
+        <h3>Warden Cookie Helper</h3>
+        <p>You may receive a 502 bad gateway error after disabling the PHP-SPX or XDEBUG containers, if you still have the relevant cookies present in your browser.</p>
+        <p>If you have recently disabled one of these services and encounter this error page, you can use this tool to help identify and clear the appropriate cookies.</p>
+        <hr style="margin: 30px 0; opacity: .2;">
+    </div>
+
+    <script>
+        const helper = document.querySelector('[data-warden-cookie-helper]');
+        const cookies = document.cookie.split(';');
+
+        const resetCookies = prefix => {
+            cookies.filter(c => c.includes(prefix)).forEach(c => {
+                document.cookie = `${c.split('=')[0]}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+            });
+            location.reload();
+        }
+
+        const createCell = (text, className, colspan) => {
+            const cell = document.createElement('td');
+            cell.innerText = text;
+            cell.className = className ?? '';
+            cell.colSpan = colspan ?? 1;
+            return cell;
+        }
+
+        const createButton = (text, onClick) => {
+            const button = document.createElement('button');
+            button.innerText = text;
+            button.onclick = onClick;
+            return button;
+        }
+        
+        ['SPX', 'XDEBUG'].forEach(prefix => {
+            const prefixCookies = cookies.filter(c => c.includes(prefix));
+
+            const table = document.createElement('table');
+            
+            // Header row
+            const state = prefixCookies.length ? 'enabled' : 'disabled';
+            const headerRow = document.createElement('tr');
+            headerRow.append(
+                createCell(prefix),
+                createCell(state.toUpperCase(), `status--${state}`)
+            );
+            table.appendChild(headerRow);
+
+            if (prefixCookies.length === 0) {
+                const row = document.createElement('tr');
+                row.appendChild(createCell('No cookies found', 'center', 2));
+                table.appendChild(row);
+
+                helper.appendChild(table);
+                return;
+            }
+
+            // Clear Button
+            const buttonCell = createCell(null, null, 2);
+            buttonCell.appendChild(createButton(`Clear ${prefix} Cookies`, () => resetCookies(prefix)));
+            const buttonRow = document.createElement('tr');
+            buttonRow.appendChild(buttonCell);
+            table.appendChild(buttonRow);
+
+            // Cookie rows
+            prefixCookies.forEach(c => {
+                const [k, v] = c.split('=');
+                const row = document.createElement('tr');
+                row.append(createCell(k.trim()), createCell(v.trim()));
+                table.appendChild(row);
+            });
+
+            helper.appendChild(table);
+        });
+    </script>
+  </body>
+</html>
