@@ -176,7 +176,7 @@ jobs:
       php_version_map: ${{ steps.build-map.outputs.php_version_map }}
     steps:
       - name: Download PHP Versions artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ${{ runner.temp }}/php-versions
           pattern: php-versions-*
@@ -203,7 +203,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download metadata
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
@@ -294,7 +294,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download metadata
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
@@ -383,7 +383,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download metadata
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.variant }}-*
