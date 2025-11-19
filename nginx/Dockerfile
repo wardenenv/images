@@ -13,6 +13,7 @@ ENV NGINX_UPSTREAM_BLACKFIRE_PORT 9000
 ENV NGINX_ROOT                    /var/www/html
 ENV NGINX_PUBLIC                  ''
 ENV NGINX_TEMPLATE                application.conf
+ENV NGINX_RESOLVER                127.0.0.11
 ENV XDEBUG_CONNECT_BACK_HOST      '""'
 
 COPY etc/nginx/fastcgi_params /etc/nginx/fastcgi_params.template
@@ -23,7 +24,7 @@ COPY etc/nginx/502.html /usr/share/nginx/html/502.html
 CMD envsubst '${NGINX_UPSTREAM_HOST} ${NGINX_UPSTREAM_PORT} \
               ${NGINX_UPSTREAM_BLACKFIRE_HOST} ${NGINX_UPSTREAM_BLACKFIRE_PORT} \
               ${NGINX_UPSTREAM_DEBUG_HOST} ${NGINX_UPSTREAM_DEBUG_PORT} \
-              ${NGINX_UPSTREAM_SPX_HOST} ${NGINX_UPSTREAM_SPX_PORT} \
+              ${NGINX_UPSTREAM_SPX_HOST} ${NGINX_UPSTREAM_SPX_PORT} ${NGINX_RESOLVER} \
               ${NGINX_ROOT} ${NGINX_PUBLIC} ${NGINX_TEMPLATE}' \
         < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf \
     && envsubst '${XDEBUG_CONNECT_BACK_HOST}' \
