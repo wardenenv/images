@@ -154,14 +154,14 @@ jobs:
           PHP_VERSIONS_DIR: ${{ runner.temp }}/php-versions
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
           if-no-files-found: error
           retention-days: 1
       - name: Push PHP Version Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: php-versions-${{ matrix.php_version }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/php-versions/*
@@ -272,7 +272,7 @@ jobs:
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
@@ -361,7 +361,7 @@ jobs:
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php/scripts/build.sh
       - name: Push Metadata Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: metadata-${{ matrix.php_version }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
