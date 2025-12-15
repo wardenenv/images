@@ -147,7 +147,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Download metadata
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ matrix.php_version}}-${{ matrix.build_group }}-${{ matrix.variant }}-*
@@ -251,7 +251,7 @@ jobs:
         run: |
           echo "sanitizedBuildGroup=$(echo "${{ matrix.build_group}}" | tr / _)" >> $GITHUB_ENV
       - name: Download metadata
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/metadata
           pattern: metadata-${{ inputs.php_version}}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-*
