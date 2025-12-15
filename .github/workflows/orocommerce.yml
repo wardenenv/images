@@ -125,7 +125,7 @@ jobs:
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: metadata-${{ inputs.php_version }}-${{ matrix.build_group }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
@@ -225,7 +225,7 @@ jobs:
           METADATA_DIR: ${{ runner.temp }}/metadata
         run: bash php-fpm/scripts/build.sh "${BUILD_GROUP}"
       - name: Push Metadata Files
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: metadata-${{ inputs.php_version }}-${{ env.sanitizedBuildGroup }}-${{ matrix.variant }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/metadata/*
