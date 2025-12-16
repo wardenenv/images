@@ -6,7 +6,7 @@ commandTests:
     args: ["--version"]
     expectedOutput:
       # (?m) will allow ^ and $ to match individual lines not start and end of entire string
-      - "(?m)^PHP 8\\.4\\.[0-9]+ \\(cli\\)"
+      - "(?m)^PHP 8\\.5\\.[0-9]+ \\(cli\\)"
 
   - name: "Sodium Module Loaded"
     command: "php"
@@ -28,3 +28,10 @@ commandTests:
       # XMLRPC
       - "(?m)^/etc/php.d/30-xmlrpc.ini"
       - "(?m)^core library version => xmlrpc-epi v."
+
+  # Swoole is not currently supported on PHP 8.5
+  - name: "No Swoole Module Check"
+    command: "php"
+    args: ["-m"]
+    excludedOutput:
+      - "(?m)^swoole"

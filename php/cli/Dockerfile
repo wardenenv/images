@@ -19,6 +19,8 @@ RUN set -eux \
         if [[ ${PKG} = "mcrypt" ]] && (( ${PHP_VERSION} > 71 )); then continue; fi; \
         if [[ ${PKG} = "sodium" ]] && (( ${PHP_VERSION} < 72 )); then continue; fi; \
         if [[ ${PKG} = "xmlrpc" ]] && (( ${PHP_VERSION} > 83 )); then continue; fi; \
+        # Swoole does not currently support PHP 8.5, see: https://github.com/swoole/swoole-src/issues/5949#issuecomment-3619451641
+        if [[ ${PKG} = "pecl-swoole" ]] && (( ${PHP_VERSION} > 84 )); then continue; fi; \
         PHP_PACKAGES+="php-${PKG} "; \
     done \
     && dnf install -y ${PHP_PACKAGES} git perl which npm patch gettext unzip bzip2 pwgen procps nmap-ncat jq \
