@@ -19,6 +19,7 @@ jobs:
         version:
           - "8.0"
           - "8.1"
+          - "9.0"
 
     steps:
       - uses: actions/checkout@v5

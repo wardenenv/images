@@ -26,6 +26,9 @@ jobs:
           - "7.2"
           - "7.4"
           - "8.0"
+          - "8.2"
+          - "8.4"
+          - "8.6"
 
     steps:
       - uses: actions/checkout@v5
