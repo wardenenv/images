@@ -42,7 +42,7 @@ jobs:
       security_versions: ${{ steps.get_php_versions.outputs.php_security_versions }}
       eol_versions: ${{ steps.get_php_versions.outputs.php_eol_versions}}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/get-php-versions
         id: get_php_versions
         with:
@@ -132,7 +132,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -201,7 +201,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [cli]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Download metadata
         uses: actions/download-artifact@v6
         with:
@@ -251,7 +251,7 @@ jobs:
           FULL_PHP_VERSION=$(jq -cr --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.map-php-versions.outputs.php_version_map }}')
           echo "full_php_version=${FULL_PHP_VERSION}" >> $GITHUB_OUTPUT
           echo "::notice title=Full PHP ${{ matrix.php_version }} Version::${FULL_PHP_VERSION}"
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -292,7 +292,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [cli-loaders, fpm]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Download metadata
         uses: actions/download-artifact@v6
         with:
@@ -340,7 +340,7 @@ jobs:
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
           echo "full_php_version=$(jq -cr --arg majorVers "${{ matrix.php_version }}" '.[$majorVers]' <<< '${{ needs.map-php-versions.outputs.php_version_map }}')" >> $GITHUB_OUTPUT
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -381,7 +381,7 @@ jobs:
           - ${{ fromJSON(needs.php-versions.outputs.stable_versions).major }}
         variant: [fpm-loaders]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Download metadata
         uses: actions/download-artifact@v6
         with:
