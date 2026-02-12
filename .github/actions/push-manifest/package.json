@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@docker/actions-toolkit": "^0.55.0"
+    "@docker/actions-toolkit": "^0.76.0"
   },
   "devDependencies": {
-    "@github/local-action": "^2.6.2",
+    "@github/local-action": "^7.0.0",
     "@vercel/ncc": "^0.38.3",
     "semver": "^7.7.1"
   }
