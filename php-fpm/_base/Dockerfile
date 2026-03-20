@@ -49,7 +49,7 @@ RUN useradd www-data \
     && find /var/log /var/lib/php -uid $(id -u ${PHP_FPM_USER}) | xargs chown www-data \
     && find /var/log /var/lib/php -gid $(id -g ${PHP_FPM_GROUP}) | xargs chgrp www-data \
     && perl -pi -e 's/^(user|group) = php-fpm$/$1 = www-data/g' /etc/php-fpm.d/www.conf \
-    && chown :www-data -R /opt
+    && chown :www-data -R /opt && chmod g+w -R /opt
 
 WORKDIR /var/www/html
 USER www-data
