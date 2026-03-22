@@ -1,0 +1,41 @@
+name: Docker Image Cloudflared
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *" # 6 AM Daily
+  push:
+    paths:
+      - cloudflared/**
+      - .github/workflows/cloudflared.yml
+
+jobs:
+  cloudflared:
+    name: Cloudflared
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ !env.ACT }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ !env.ACT }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: cloudflared
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.ref == 'refs/heads/main' && !env.ACT }}
+          tags: ghcr.io/${{ github.repository_owner }}/cloudflared:latest, wardenenv/cloudflared:latest
