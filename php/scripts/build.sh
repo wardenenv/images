@@ -80,15 +80,6 @@ export PHP_VERSION="${MAJOR_VERSION}"
 BUILD_ARGS=(PHP_VERSION)
 BUILD_ARGS+=(IMAGE_NAME="${WARDEN_IMAGE_REPOSITORY}/${IMAGE_NAME}")
 
-echo "::group::Specific PHP logic inclusions"
-if [[ "${BUILD_VARIANT}" == "_base" ]]; then
-  echo "is base"
-  if versionCompare "${PHP_VERSION}" "8.5" "<"; then
-    echo "version success"
-    cp "${ROOT_DIR}/php-fpm/_base/conditional-context/10-opcache.ini" "${ROOT_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
-  fi
-fi
-
 echo "::group::Downloading Container Structure Test"
   curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
   mv container-structure-test-${PLATFORM//\//-} ${ROOT_DIR}/container-structure-test

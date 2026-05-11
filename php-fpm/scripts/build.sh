@@ -147,6 +147,14 @@ else
   BUILD_CONTEXT="${BUILD_DIR}"
 fi
 
+echo "::group::Specific PHP logic inclusions"
+if [[ "${BUILD_VARIANT}" == "_base" ]]; then
+  if versionCompare "${PHP_VERSION}" "8.5" "<"; then
+    cp "${ROOT_DIR}/php-fpm/_base/conditional-context/10-opcache.ini" "${ROOT_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
+  fi
+fi
+echo "::endgroup::"
+
 echo "::group::Downloading Container Structure Test"
   curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-${PLATFORM//\//-}
   mv container-structure-test-${PLATFORM//\//-} ${BASE_DIR}/container-structure-test
