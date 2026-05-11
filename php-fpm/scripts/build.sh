@@ -152,6 +152,7 @@ if test $(version ${PHP_VERSION}) -lt $(version "8.5"); then
   echo "Copying OPCache"
   cp "${BASE_DIR}/php-fpm/_base/conditional-context/10-opcache.ini" "${BASE_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
 else
+  rm -f "${BASE_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
   echo "Not copying OPCache"
 fi
 echo "::endgroup::"
