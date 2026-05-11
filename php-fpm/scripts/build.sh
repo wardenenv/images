@@ -148,10 +148,11 @@ else
 fi
 
 echo "::group::Specific PHP logic inclusions"
-if [[ "${BUILD_VARIANT}" == "_base" ]]; then
-  if versionCompare "${PHP_VERSION}" "8.5" "<"; then
-    cp "${ROOT_DIR}/php-fpm/_base/conditional-context/10-opcache.ini" "${ROOT_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
-  fi
+if test $(version ${PHP_VERSION} - lt $(version "8.5"); then
+  echo "Copying OPCache"
+  cp "${BASE_DIR}/php-fpm/_base/conditional-context/10-opcache.ini" "${BASE_DIR}/php-fpm/_base/context/etc/php.d/10-opcache.ini"
+else
+  echo "Not copying OPCache"
 fi
 echo "::endgroup::"
 
