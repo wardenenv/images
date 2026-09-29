@@ -16,5 +16,5 @@ inputs:
   tags:
     description: Additional tags that should be applied to the manifest
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
