@@ -28,6 +28,10 @@ RUN set -eux; \
 		echo; \
 		echo '[www]'; \
 		echo 'listen = 9000'; \
+		echo; \
+		echo '; Spawn workers per request and reap them when idle, so idle environments hold no worker memory'; \
+		echo 'pm = ondemand'; \
+		echo 'pm.process_idle_timeout = 10s'; \
 	} | tee php-fpm.d/zz-docker.conf; \
     perl -pi -e 's/^(pid|error_log|daemonize)/;$1/g' /etc/php-fpm.conf; \
     perl -pi -e 's/^(listen)/;$1/g' /etc/php-fpm.d/www.conf; \
