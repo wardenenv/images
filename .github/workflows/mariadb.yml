@@ -41,7 +41,7 @@ jobs:
           - "12.0"
           - "12.1"
           - "12.2"
-          - "12.3-rc"
+          - "12.3"
 
     steps:
       - uses: actions/checkout@v7
