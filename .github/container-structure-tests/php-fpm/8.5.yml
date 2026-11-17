@@ -14,6 +14,18 @@ commandTests:
       - "(?m)^For Loader updates visit www\\.ioncube\\.com/loaders\\.php"
       - "(?m)^ioncube\\.loader\\.encoded_paths => no value => no value"
 
+  - name: "OPcache Settings Applied"
+    command: "php"
+    args: ["-i"]
+    expectedOutput:
+      - "(?m)^opcache\\.enable_cli => Off => Off"
+      - "(?m)^opcache\\.memory_consumption => 512 => 512"
+  - name: "Syntax Check Works With ionCube Loaded"
+    command: "bash"
+    args: ["-c", "echo '<?php echo 1;' > /tmp/lint.php && php -l /tmp/lint.php"]
+    expectedOutput:
+      - "No syntax errors detected in /tmp/lint.php"
+
 fileExistenceTests:
   - name: "IonCube Config Exists"
     path: "/etc/php.d/01-ioncube-loader.ini"
