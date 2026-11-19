@@ -25,6 +25,11 @@ commandTests:
     args: ["-c", "echo '<?php echo 1;' > /tmp/lint.php && php -l /tmp/lint.php"]
     expectedOutput:
       - "No syntax errors detected in /tmp/lint.php"
+  - name: "SourceGuardian Module Loaded"
+    command: "php-fpm"
+    args: ["-m"]
+    expectedOutput:
+      - "(?m)SourceGuardian"
 
 fileExistenceTests:
   - name: "IonCube Config Exists"
