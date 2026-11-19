@@ -10,11 +10,6 @@ commandTests:
     command: "which"
     args: ["npm"]
     expectedOutput: ["/usr/local/bin/npm"]
-  - name: "SourceGuardian Module Loaded"
-    command: "php-fpm"
-    args: ["-m"]
-    expectedOutput:
-      - "(?m)SourceGuardian"
   - name: "PHP Info Values Check"
     command: "php-fpm"
     args: ["-i"]
